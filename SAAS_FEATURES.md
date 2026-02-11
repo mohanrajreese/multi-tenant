@@ -141,3 +141,27 @@ A smart router that resolves any host to a tenant.
 #### 📂 Key Files:
 - `tenants/services_domain.py`: DNS verification engines.
 - `tenants/middleware.py`: The routing logic.
+
+---
+
+## 8. Global Search (cross-resource)
+
+### 🔴 The Problem
+Users need to quickly find information across different parts of their application (e.g., products, users, audit logs) without navigating to separate sections. Traditional search often requires separate implementations for each model, leading to inconsistent results and complex maintenance.
+
+### 🟢 The Solution: Unified Query Layer with Tenant-Scoped Aggregation
+We provide a single, intelligent search endpoint that aggregates results from multiple database models concurrently, all while respecting tenant isolation.
+
+#### 🛠️ Implementation Details:
+1.  **Search Service**: A dedicated `SearchService` orchestrates the search process. It takes a query string and a list of models to search.
+2.  **Tenant-Locked Queries**: For each specified model, the `SearchService` executes a separate, tenant-scoped query. Because the ORM is already configured for multi-tenancy (via `TenantManager`), every search automatically filters data to the current tenant, ensuring zero data leakage across workspaces.
+3.  **Dynamic Aggregation**: Results from different models are collected, normalized, and then grouped by category (e.g., "Products", "Members", "Audit Logs").
+4.  **HTMX Powered Frontend**: The search interface uses HTMX to provide real-time "Type-to-Search" results. As the user types, results are fetched and displayed instantly, often with visual hit categorization and hit counts for each resource type.
+
+#### 🛡️ Security Check:
+When a user searches for "iPhone", the system performs a multi-resource scan. Since searching happens inside the Tenant Context, the user only finds "iPhones" belonging to their organization, even if other tenants have products with similar names.
+
+#### 📂 Key Files:
+- `tenants/services_search.py`: The core search orchestration and aggregation logic.
+- `tenants/views_dashboard.py`: The view handling search requests and rendering HTMX responses.
+- `tenants/models.py`: Models that are searchable will have appropriate fields indexed or configured for full-text search.

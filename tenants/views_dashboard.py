@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from products.models import Product
 from .services_invitation import InvitationService
 from .models import TenantInvitation, AuditLog, Domain
+from .services_search import SearchService
 
 class DashboardHomeView(LoginRequiredMixin, View):
     def get(self, request):
@@ -88,3 +89,14 @@ class DomainManagementView(LoginRequiredMixin, View):
                 status='PENDING'
             )
         return redirect('manage_domains')
+
+class GlobalSearchView(LoginRequiredMixin, View):
+    def get(self, request):
+        query = request.GET.get('q', '')
+        results = SearchService.search(query)
+        
+        # If it's an HTMX request, we return just the results fragment
+        if request.headers.get('HX-Request') or request.GET.get('hx'):
+             return render(request, 'dashboard/partials/search_results.html', results)
+             
+        return render(request, 'dashboard/search_full.html', results)
