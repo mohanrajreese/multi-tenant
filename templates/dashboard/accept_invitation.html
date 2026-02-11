@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Join {{ invitation.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto py-20">
+    <div class="glass p-10 rounded-3xl space-y-8 text-center">
+        <div class="space-y-4">
+            <div class="w-16 h-16 bg-primary-600 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-xl shadow-primary-600/20">
+                {{ invitation.tenant.name|first }}
+            </div>
+            <div class="space-y-2">
+                <h1 class="text-3xl font-bold">You're Invited!</h1>
+                <p class="text-gray-400">
+                    You have been invited to join <strong>{{ invitation.tenant.name }}</strong> as a {{ invitation.role.name }}.
+                </p>
+            </div>
+        </div>
+
+        <form action="" method="POST" class="space-y-4">
+            {% csrf_token %}
+            {% if user.is_authenticated %}
+                <p class="text-sm text-gray-500">Joining as <strong>{{ user.email }}</strong></p>
+                <button type="submit" class="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform active:scale-95">
+                    Accept & Join Workspace
+                </button>
+            {% else %}
+                <a href="/auth/login/?next={{ request.path }}" class="w-full block bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform active:scale-95 text-center">
+                    Login to Accept Invitation
+                </a>
+            {% endif %}
+        </form>
+
+        <div class="pt-4 border-t border-gray-800">
+            <p class="text-xs text-gray-500 italic">
+                This invitation was sent by {{ invitation.invited_by.email }} and will expire on {{ invitation.expires_at|date:"M d, Y" }}.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

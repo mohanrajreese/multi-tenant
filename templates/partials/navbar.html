@@ -1,0 +1,29 @@
+<nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-primary-500/20">
+            {% if request.tenant %}{{ request.tenant.name|first }}{% else %}S{% endif %}
+        </div>
+        <span class="text-xl font-bold tracking-tight">
+            {% if request.tenant %}{{ request.tenant.name }}{% else %}Multi-Tenant SaaS{% endif %}
+        </span>
+    </div>
+    
+    <div class="flex items-center space-x-6">
+        {% if user.is_authenticated %}
+            {% if request.tenant %}
+                <a href="/dashboard/" class="text-sm font-medium hover:text-primary-400 transition-colors">Dashboard</a>
+                <a href="/products/" class="text-sm font-medium hover:text-primary-400 transition-colors">Products</a>
+            {% endif %}
+            <form action="/auth/logout/" method="post" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="text-sm font-medium hover:text-red-400 transition-colors">Logout</button>
+            </form>
+            <div class="flex items-center space-x-2 pl-4 border-l border-gray-800">
+                <span class="text-sm text-gray-400">{{ user.email }}</span>
+            </div>
+        {% else %}
+            <a href="/auth/login/" class="text-sm font-medium hover:text-primary-400 transition-colors">Login</a>
+            <a href="/onboard/" class="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary-600/20">Get Started</a>
+        {% endif %}
+    </div>
+</nav>

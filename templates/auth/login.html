@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto py-20">
+    <div class="glass p-10 rounded-3xl space-y-8">
+        <div class="text-center space-y-2">
+            <h1 class="text-3xl font-bold">Welcome Back</h1>
+            <p class="text-gray-400">
+                {% if request.tenant %}Sign in to <strong>{{ request.tenant.name }}</strong>{% else %}Sign in to your account{% endif %}
+            </p>
+        </div>
+
+        {% if error %}
+        <div class="bg-red-900/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl text-sm">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/auth/login/" method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-300">Email Address</label>
+                <input type="email" name="email" required placeholder="name@company.com" 
+                       class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none transition-all">
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-300">Password</label>
+                <input type="password" name="password" required placeholder="••••••••" 
+                       class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none transition-all">
+            </div>
+
+            <button type="submit" class="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform active:scale-95">
+                Login
+            </button>
+        </form>
+
+        <div class="text-center text-sm">
+            <a href="/onboard/" class="text-primary-400 hover:underline">Don't have a workspace? Create one</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

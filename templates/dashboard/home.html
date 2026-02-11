@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex justify-between items-end">
+        <div class="space-y-1">
+            <h1 class="text-3xl font-bold">Dashboard</h1>
+            <p class="text-gray-400">Welcome back to your <strong>{{ request.tenant.name }}</strong> workspace.</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="/dashboard/domains/" class="glass px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-all">Domains</a>
+            <a href="/dashboard/audit-logs/" class="glass px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-all">Audit Logs</a>
+            <a href="/dashboard/invites/" class="glass px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-all">Manage Team</a>
+            <button class="glass px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-all">Export Data</button>
+            <a href="/products/new/" class="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">Add Product</a>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="glass p-6 rounded-2xl border-l-4 border-l-primary-500">
+            <p class="text-sm font-medium text-gray-400">Total Products</p>
+            <p class="text-3xl font-bold">{{ products_count }}</p>
+        </div>
+        <div class="glass p-6 rounded-2xl border-l-4 border-l-green-500">
+            <p class="text-sm font-medium text-gray-400">Active Users</p>
+            <p class="text-3xl font-bold">1</p>
+        </div>
+        <div class="glass p-6 rounded-2xl border-l-4 border-l-blue-500">
+            <p class="text-sm font-medium text-gray-400">Storage Used</p>
+            <p class="text-3xl font-bold">12%</p>
+        </div>
+        <div class="glass p-6 rounded-2xl border-l-4 border-l-purple-500">
+            <p class="text-sm font-medium text-gray-400">SLA Status</p>
+            <p class="text-3xl font-bold text-green-400">99.9%</p>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="glass rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+            <h3 class="font-bold">Recent Products</h3>
+            <button hx-get="/products/refresh/" hx-target="#product-list" class="text-xs text-primary-400 hover:text-primary-300 font-bold uppercase tracking-wider">Refresh</button>
+        </div>
+        <div id="product-list" class="divide-y divide-gray-800">
+            {% for product in recent_products %}
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-gray-900/50 transition-colors">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center font-bold text-gray-400">
+                        {{ product.name|first }}
+                    </div>
+                    <div>
+                        <p class="font-medium">{{ product.name }}</p>
+                        <p class="text-xs text-gray-500">ID: {{ product.id|truncatechars:8 }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-lg">${{ product.price }}</p>
+                    <p class="text-xs text-gray-500">{{ product.created_at|timesince }} ago</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-12 text-center space-y-2">
+                <p class="text-gray-400">No products found yet.</p>
+                <a href="/products/new/" class="text-primary-400 font-medium hover:underline">Add your first product</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
