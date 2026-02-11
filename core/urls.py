@@ -26,5 +26,5 @@ urlpatterns = [
     path('dashboard/audit-logs/', AuditLogView.as_view(), name='audit_logs'),
     path('dashboard/domains/', DomainManagementView.as_view(), name='manage_domains'),
     path('dashboard/search/', GlobalSearchView.as_view(), name='global_search'),
-    # path('products/', include('products.urls')),
+    path('products/', include('products.urls')),
 ]
