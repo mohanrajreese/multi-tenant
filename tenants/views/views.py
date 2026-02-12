@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from tenants.business.core.services import TenantService
+from tenants.business.core.services_onboarding import OnboardingService
 from tenants.business.operations.services_invitation import InvitationService
 from tenants.models import TenantInvitation
 
@@ -20,7 +20,7 @@ class OnboardView(View):
         password = request.POST.get('password')
         
         try:
-            tenant, admin_user = TenantService.onboard_tenant(
+            tenant, admin_user = OnboardingService.onboard_tenant(
                 tenant_name=name,
                 admin_email=email,
                 admin_password=password

@@ -9,21 +9,12 @@ from .views.views_dashboard import (
     RevokeInviteView, AuditLogView, DomainManagementView, 
     GlobalSearchView
 )
-from .api.views.api_views import (
-    AuditLogViewSet, 
-    MembershipViewSet, 
-    OnboardingViewSet, 
-    TenantInvitationViewSet,
-    GlobalSearchAPIView,
-    MeView,
-    RoleViewSet,
-    PermissionViewSet,
-    DomainViewSet,
-    TenantViewSet,
-    AcceptInvitationAPIView,
-    ChangePasswordView,
-    QuotaViewSet,
-    HealthCheckAPIView,
+from .api.views import (
+    AuditLogViewSet, OnboardingViewSet, TenantInvitationViewSet,
+    RoleViewSet, DomainViewSet, TenantViewSet,
+    AcceptInvitationAPIView, MembershipViewSet, 
+    GlobalSearchAPIView, MeView, ChangePasswordView,
+    PermissionViewSet, QuotaViewSet, HealthCheckAPIView,
     TenantSwitcherAPIView
 )
 

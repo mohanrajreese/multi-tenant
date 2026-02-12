@@ -1,0 +1,74 @@
+from uuid import uuid4
+from django.db import models
+from tenants.infrastructure.storage.utils import tenant_storage_path
+from tenants.infrastructure.storage.factory import get_tenant_storage
+
+class Plan(models.Model):
+    """
+    Subscription tiers for the platform.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    name = models.CharField(max_length=50)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True)
+    default_quotas = models.JSONField(default=dict)
+    monthly_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    yearly_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name
+
+class Tenant(models.Model):
+    """
+    The Organization/Client that owns data.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True, help_text="Unique name for the tenant (e.g., acme-corp)")
+    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True, related_name='tenants')
+    
+    logo = models.ImageField(
+        upload_to=tenant_storage_path, 
+        storage=get_tenant_storage, 
+        null=True, 
+        blank=True
+    )
+    primary_color = models.CharField(max_length=7, default="#000000", help_text="Hex color code")
+    secondary_color = models.CharField(max_length=7, default="#ffffff", help_text="Hex color code")
+    support_email = models.EmailField(null=True, blank=True)
+    website = models.URLField(null=True, blank=True)
+    is_maintenance = models.BooleanField(default=False)
+    config = models.JSONField(default=dict, blank=True)
+    ip_whitelist = models.JSONField(default=list, blank=True)
+    security_config = models.JSONField(default=dict, blank=True)
+    smtp_config = models.JSONField(default=dict, blank=True)
+    sso_config = models.JSONField(default=dict, blank=True)
+    storage_config = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+class Domain(models.Model):
+    """
+    The URL associated with a tenant.
+    """
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending Verification'),
+        ('ACTIVE', 'Active'),
+        ('FAILED', 'Verification Failed'),
+    )
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    domain = models.CharField(max_length=255, unique=True, db_index=True)
+    tenant = models.ForeignKey(Tenant, related_name='domains', on_delete=models.CASCADE)
+    is_primary = models.BooleanField(default=False)
+    is_custom = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.domain} ({self.tenant.name})"
