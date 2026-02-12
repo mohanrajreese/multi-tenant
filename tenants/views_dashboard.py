@@ -22,12 +22,12 @@ class DashboardHomeView(LoginRequiredMixin, View):
         return render(request, 'dashboard/home.html', context)
 
 class InviteUserView(LoginRequiredMixin, View):
-    @method_decorator(tenant_permission_required('add_user')) # Using standard Django permission name or custom
+    @method_decorator(tenant_permission_required('add_membership')) # Standard Django: add_<model_name>
     def get(self, request):
         invitations = TenantInvitation.objects.all().order_by('-created_at')
         return render(request, 'dashboard/invites.html', {'invitations': invitations})
     
-    @method_decorator(tenant_permission_required('add_user'))
+    @method_decorator(tenant_permission_required('add_membership'))
     def post(self, request):
         email = request.POST.get('email')
         role_name = request.POST.get('role', 'Member')
@@ -48,7 +48,7 @@ class InviteUserView(LoginRequiredMixin, View):
             })
 
 class ResendInviteView(LoginRequiredMixin, View):
-    @method_decorator(tenant_permission_required('add_user'))
+    @method_decorator(tenant_permission_required('add_membership'))
     def post(self, request, pk):
         try:
             InvitationService.resend_invitation(pk, request.tenant)
@@ -58,7 +58,7 @@ class ResendInviteView(LoginRequiredMixin, View):
             return redirect('dashboard_invites')
 
 class RevokeInviteView(LoginRequiredMixin, View):
-    @method_decorator(tenant_permission_required('add_user'))
+    @method_decorator(tenant_permission_required('add_membership'))
     def post(self, request, pk):
         try:
             InvitationService.revoke_invitation(pk, request.tenant)
@@ -67,18 +67,18 @@ class RevokeInviteView(LoginRequiredMixin, View):
             return redirect('dashboard_invites')
 
 class AuditLogView(LoginRequiredMixin, View):
-    @method_decorator(tenant_permission_required('view_audit_logs'))
+    @method_decorator(tenant_permission_required('view_auditlog'))
     def get(self, request):
         logs = AuditLog.objects.all().select_related('user').order_by('-created_at')
         return render(request, 'dashboard/audit_logs.html', {'logs': logs})
 
 class DomainManagementView(LoginRequiredMixin, View):
-    @method_decorator(tenant_permission_required('manage_domains'))
+    @method_decorator(tenant_permission_required('view_domain'))
     def get(self, request):
         domains = Domain.objects.all().order_by('-is_primary')
         return render(request, 'dashboard/domains.html', {'domains': domains})
 
-    @method_decorator(tenant_permission_required('manage_domains'))
+    @method_decorator(tenant_permission_required('add_domain'))
     def post(self, request):
         new_domain = request.POST.get('domain')
         if new_domain:

@@ -41,11 +41,14 @@ INSTALLED_APPS = [
     #Third Party
     "django_extensions",
     "django_htmx",
+    "rest_framework",
 
     # Internal Apps
     "tenants.apps.TenantsConfig",
     "users.apps.UsersConfig",
     "products.apps.ProductsConfig",
+    "rest_framework.authtoken",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -148,3 +151,24 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Set the Custom User Model
 AUTH_USER_MODEL = "users.User"
+
+# Django REST Framework Settings
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20
+}
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Multi-Tenant SaaS API',
+    'DESCRIPTION': 'Enterprise Headless REST API with full tenant isolation.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}

@@ -165,3 +165,32 @@ When a user searches for "iPhone", the system performs a multi-resource scan. Si
 - `tenants/services_search.py`: The core search orchestration and aggregation logic.
 - `tenants/views_dashboard.py`: The view handling search requests and rendering HTMX responses.
 - `tenants/models.py`: Models that are searchable will have appropriate fields indexed or configured for full-text search.
+
+---
+
+## 9. Headless REST API Layer
+
+### 🔴 The Problem
+Modern SaaS applications often need to serve more than just web templates. You might need a mobile app, a specialized frontend (React/Vue/Mobile), or allow your customers to build their own integrations via API. A standard monolithic approach makes this difficult.
+
+### 🟢 The Solution: Secure, Scoped JSON Endpoints
+We provide a comprehensive REST API layer that leverages the platform's multi-tenant engine while delivering standard JSON responses.
+
+#### 🛠️ Implementation Details:
+1.  **TenantAwareViewSet**: A base class in `tenants/api_base.py` that overrides `get_queryset`. This ensures that even if a developer forgets to filter manually, the API will *never* return data from a different tenant.
+2.  **Remote RBAC**: The `DRFTenantPermission` class maps standard HTTP methods (GET, POST, DELETE) to your custom tenant-scoped permissions (e.g., `add_product`, `view_audit_logs`).
+3.  **Authentication**: Supports Session-based auth for dashboards and **Token Authentication** (`/api/v1/auth-token/`) for external apps or mobile clients.
+4.  **Automatic Routing**: Uses DRF Routers to provide clean, versioned endpoints under `/api/v1/`.
+5.  **Unified Search API**: Provides a JSON endpoint (`/api/v1/search/`) for cross-resource search.
+6.  **Public Onboarding API**: Build custom registration flows via `/api/v1/onboard/`.
+7.  **Profile & Security API**: Self-service profile updates and password changes (`/api/v1/auth/me/`, `/api/v1/auth/password/`).
+8.  **Team & Invitation Lifecycle**: Full CRUD for team members and lifecycle actions (resend/revoke) for invitations via REST.
+
+#### 🛡️ Security Check:
+If a user with an API key for "Tenant A" tries to access `/api/v1/products/` with a Host header for "Tenant B", the system will return `401 Unauthorized` or an empty set, as the identifier resolver and the ViewSet work in tandem to enforce isolation.
+
+#### 📂 Key Files:
+- `tenants/api_base.py`: The core API isolation and permission logic.
+- `tenants/api_views.py`: Generic resource and search endpoints.
+- `products/api_views.py`: Specific product resource endpoints.
+- `core/urls.py`: The versioned API router and auth configuration.

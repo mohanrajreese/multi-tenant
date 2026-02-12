@@ -61,7 +61,7 @@ class TenantService:
         
         # Assign default permissions to Admin
         from django.contrib.auth.models import Permission
-        perms = Permission.objects.filter(codename__in=['add_user', 'view_audit_logs', 'add_product', 'manage_domains'])
+        perms = Permission.objects.filter(codename__in=['add_membership', 'view_auditlog', 'add_product', 'view_domain', 'add_domain'])
         admin_role.permissions.add(*perms)
         # 5. Create Membership
         Membership.objects.create(
