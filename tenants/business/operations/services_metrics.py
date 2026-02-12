@@ -21,8 +21,19 @@ class MetricsService:
         
         # Omega Tier: Metered Billing push
         from .billing.factory import BillingFactory
+        # Omega Tier: Metered Billing Sync
         provider = BillingFactory.get_provider(tenant)
-        provider.update_usage(tenant, metric_name, int(value))
+        try:
+            # Assuming quantity should be an integer for update_usage, similar to original implementation
+            provider.update_usage(tenant, metric_name, int(value))
+        except Exception as e:
+            logger.error(f"Failed to sync metered usage for {tenant.slug}: {e}")
+
+        # Chi Tier: Credit Drawdown Logic
+        if tenant.config.get('billing', {}).get('use_credits', False):
+            from .billing.services_wallet import CreditWalletService
+            # Assume 1 credit per unit of usage for demo
+            CreditWalletService.drawdown(tenant, float(value))
         
         return metric
 

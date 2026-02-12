@@ -35,7 +35,8 @@ class TaxService:
         Validates a tax identifier (e.g., VAT number) for a specific country.
         In production, this would call a validation API (e.g., Stripe Tax, VIES).
         """
-        # Mock validation logic
+        # LIVE API HOOK: In production, call TaxJar/Avalara/VIES here.
+        # response = requests.get(f"https://api.vies.eu/validate/{tax_id}")
         if not tax_id:
             return False
         return len(tax_id) > 5 # Basic check

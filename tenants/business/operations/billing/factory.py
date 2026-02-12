@@ -1,27 +1,24 @@
 from .providers.stripe import StripeProvider
 from .providers.paddle import PaddleProvider
-from tenants.infrastructure.utils import get_current_tenant
+from .providers.upi import UPIProvider
 
 class BillingFactory:
     """
-    Omega Tier: Dynamic Billing Provider Resolver.
-    Supports multi-provider orchestration (Stripe, Paddle, etc.).
+    Factory to resolve billing providers based on tenant configuration.
     """
     
     @staticmethod
-    def get_provider(tenant=None):
+    def get_provider(tenant):
         """
-        Returns the appropriate billing provider for the tenant.
-        Defaults to Stripe unless explicitly configured otherwise.
+        Returns the configured billing provider for a tenant.
         """
-        if tenant is None:
-            tenant = get_current_tenant()
-            
-        if not tenant:
-            return StripeProvider() # Fallback
-
-        provider_type = tenant.config.get('billing_provider', 'stripe').lower()
+        provider_type = tenant.config.get('billing_provider', 'stripe')
         
-        if provider_type == 'paddle':
+        if provider_type == 'stripe':
+            return StripeProvider()
+        elif provider_type == 'paddle':
             return PaddleProvider()
-        return StripeProvider()
+        elif provider_type == 'upi':
+            return UPIProvider()
+            
+        return StripeProvider() # Fallback

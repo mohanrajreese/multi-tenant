@@ -8,6 +8,9 @@ class CurrencyConversionService:
     """
     Tau Tier: Global Currency Conversion Engine.
     Handles exchange rate logic for localized billing.
+    
+    ZENITH+ UPGRADE: This service is ready for live FX API integration 
+    (e.g., exchangeratesapi.io, OANDA).
     """
     
     # Mock exchange rates (Base: USD)
