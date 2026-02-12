@@ -11,7 +11,7 @@ class TenantsConfig(AppConfig):
         from .models import Membership, AuditLog
         
         # Ensure our storage router is correctly initialized if needed
-        from .infrastructure.storage_backends import StorageRouter
+        from .infrastructure.storage.factory import StorageFactory
 
         # Register internal models for search
         SearchRegistry.register(

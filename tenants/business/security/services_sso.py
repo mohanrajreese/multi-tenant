@@ -1,59 +1,49 @@
-import requests
-import jwt
 from django.contrib.auth import get_user_model
 from tenants.models import Membership
+from .identity.factory import IdentityFactory
 
 User = get_user_model()
 
-class GoogleSSOService:
+class IdentityService:
     """
-    Singularity Tier: Identity Evolution.
-    Handles Google OIDC authentication scoped to tenant-specific domains.
+    Apex Tier: Sovereign Identity Orchestration.
+    Standardizes SSO authentication across Google, Okta, Azure AD, etc.
     """
-
-    @staticmethod
-    def verify_token(token, client_id):
-        """
-        Verifies the Google ID Token.
-        In production, this would use google-auth-library.
-        """
-        # Mocking JWT verification for architectural demonstration
-        try:
-            # payload = id_token.verify_oauth2_token(token, requests.Request(), client_id)
-            payload = jwt.decode(token, options={"verify_signature": False})
-            return payload
-        except Exception as e:
-            raise ValueError(f"Invalid SSO Token: {str(e)}")
 
     @staticmethod
     def authenticate_tenant_user(tenant, token):
         """
-        Authenticates a user for a specific tenant via Google SSO.
-        1. Verify Token
-        2. Check if email domain is allowed by tenant
-        3. Find or Create user
-        4. Ensure Membership exists
+        Universal SSO Authentication.
+        1. Resolve Provider via Factory
+        2. Verify Token & Extract Standardized Profile
+        3. Enforce Domain Whitelist
+        4. Find or Create User/Membership
         """
-        sso_config = tenant.sso_config
-        if not sso_config:
-            raise ValueError("Google SSO is not configured for this organization.")
-
-        payload = GoogleSSOService.verify_token(token, sso_config.get('client_id'))
-        email = payload.get('email')
+        # Resolve the agnostic provider
+        provider = IdentityFactory.get_provider(tenant)
+        
+        # Verify and extract standardized profile
+        profile = provider.verify_token(token)
+        email = profile.get('email')
         domain = email.split('@')[-1]
 
-        # 1. Enforce Domain Whitelist
+        # 1. Enforce Domain Whitelist (Sovereign Safety)
+        sso_config = tenant.sso_config
         allowed_domains = sso_config.get('allowed_domains', [])
         if allowed_domains and domain not in allowed_domains:
             raise ValueError(f"Access denied: {domain} is not an authorized SSO domain for {tenant.name}.")
 
-        # 2. Find/Create User
+        # 2. Find/Create User (Atomically)
         user, created = User.objects.get_or_create(
             email=email,
-            defaults={'username': email, 'first_name': payload.get('given_name', ''), 'last_name': payload.get('family_name', '')}
+            defaults={
+                'username': email, 
+                'first_name': profile.get('first_name', ''), 
+                'last_name': profile.get('last_name', '')
+            }
         )
 
-        # 3. Ensure Membership
+        # 3. Ensure Membership in the Target Tenant
         membership, m_created = Membership.objects.get_or_create(
             tenant=tenant,
             user=user,
@@ -61,3 +51,11 @@ class GoogleSSOService:
         )
 
         return user
+
+    @staticmethod
+    def get_auth_url(tenant, redirect_uri):
+        """
+        Returns the correct SSO initiation URL for the tenant.
+        """
+        provider = IdentityFactory.get_provider(tenant)
+        return provider.get_auth_url(redirect_uri)

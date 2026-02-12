@@ -1,7 +1,8 @@
 from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import Permission
-from .infrastructure.storage_utils import tenant_path
+from tenants.infrastructure.storage.utils import tenant_storage_path
+from tenants.infrastructure.storage.factory import get_tenant_storage
 
 class Plan(models.Model):
     """
@@ -35,7 +36,12 @@ class Tenant(models.Model):
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True, related_name='tenants')
     
     # Branding
-    logo = models.ImageField(upload_to=tenant_path, null=True, blank=True)
+    logo = models.ImageField(
+        upload_to=tenant_storage_path, 
+        storage=get_tenant_storage, 
+        null=True, 
+        blank=True
+    )
     primary_color = models.CharField(max_length=7, default="#000000", help_text="Hex color code")
     secondary_color = models.CharField(max_length=7, default="#ffffff", help_text="Hex color code")
 
