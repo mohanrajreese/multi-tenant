@@ -3,7 +3,10 @@ from django.conf import settings
 from .models import Domain
 
 class DomainService:
-    BASE_SAAS_DOMAIN = "localhost" # In production, this would be your-saas.com
+    @staticmethod
+    def get_base_domain():
+        from django.conf import settings
+        return getattr(settings, 'TENANT_BASE_DOMAIN', 'localhost')
 
     @staticmethod
     def verify_dns(domain_obj):
@@ -11,11 +14,12 @@ class DomainService:
         Hard-checks the DNS for a domain.
         Returns True if CNAME points to our BASE_SAAS_DOMAIN.
         """
+        base_domain = DomainService.get_base_domain()
         try:
             # We look for CNAME records
             answers = dns.resolver.resolve(domain_obj.domain, 'CNAME')
             for rdata in answers:
-                if DomainService.BASE_SAAS_DOMAIN in str(rdata.target):
+                if base_domain in str(rdata.target):
                     return True
         except Exception:
             pass

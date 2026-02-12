@@ -1,9 +1,10 @@
 from .api_base import TenantAwareViewSet, DRFTenantPermission
-from .models import AuditLog, Membership, TenantInvitation, Role, Domain, Tenant
+from .models import AuditLog, Membership, TenantInvitation, Role, Domain, Tenant, Quota
 from .serializers import (
     AuditLogSerializer, OnboardingSerializer, TenantInvitationSerializer,
     UserSerializer, RoleSerializer, DomainSerializer, TenantSerializer,
-    MembershipSerializer, ChangePasswordSerializer, PermissionSerializer
+    MembershipSerializer, ChangePasswordSerializer, PermissionSerializer,
+    QuotaSerializer
 )
 from .services import TenantService
 from .services_search import SearchService
@@ -23,12 +24,7 @@ class OnboardingViewSet(viewsets.ViewSet):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             try:
-                tenant, admin_user = TenantService.onboard_tenant(
-                    tenant_name=serializer.validated_data['tenant_name'],
-                    admin_email=serializer.validated_data['admin_email'],
-                    admin_password=serializer.validated_data['admin_password'],
-                    domain_name=serializer.validated_data.get('domain_name')
-                )
+                tenant, admin_user = TenantService.onboard_tenant(**serializer.validated_data)
                 return response.Response({
                     'status': 'success',
                     'tenant_slug': tenant.slug,
@@ -82,13 +78,8 @@ class GlobalSearchAPIView(views.APIView):
     def get(self, request):
         query = request.GET.get('q', '')
         results = SearchService.search(query)
-        data = {
-            'products': [{'id': p.id, 'name': p.name, 'price': str(p.price)} for p in results['products']],
-            'members': [{'id': m.id, 'email': m.user.email, 'role': m.role.name} for m in results['members']],
-            'logs': [{'id': l.id, 'action': l.action, 'model': l.model_name} for l in results['logs']],
-            'query': query
-        }
-        return response.Response(data)
+        # SearchService now returns a dictionary of already-serialized results
+        return response.Response(results)
 
 class MeView(views.APIView):
     """
@@ -137,7 +128,11 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Discovery API for available permissions.
     """
-    queryset = Permission.objects.filter(content_type__app_label__in=['tenants', 'products'])
+    def get_queryset(self):
+        from django.conf import settings
+        managed_apps = getattr(settings, 'TENANT_MANAGED_APPS', ['tenants'])
+        return Permission.objects.filter(content_type__app_label__in=managed_apps)
+    
     serializer_class = PermissionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -165,6 +160,40 @@ class TenantViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Tenant.objects.filter(id=self.request.tenant.id)
+
+    @action(detail=True, methods=['post'], url_path='purge-data')
+    def purge(self, request, pk=None):
+        """
+        Compliance: Hard delete all tenant data.
+        """
+        tenant = self.get_object()
+        # Security: Double check it's the current tenant
+        if str(tenant.id) != str(request.tenant.id):
+            return response.Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+            
+        result = TenantService.purge_tenant_data(tenant)
+        return response.Response({'status': 'purged', 'message': result})
+
+    @action(detail=True, methods=['get'], url_path='export-data')
+    def export(self, request, pk=None):
+        """
+        GDPR Portability: Download all tenant data.
+        """
+        tenant = self.get_object()
+        # Security: Double check it's the current tenant
+        if str(tenant.id) != str(request.tenant.id):
+            return response.Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+            
+        data = TenantService.export_tenant_data(tenant)
+        return response.Response(data)
+
+class QuotaViewSet(TenantAwareViewSet):
+    """
+    Manage resource limits headlessly.
+    """
+    queryset = Quota.objects.all()
+    serializer_class = QuotaSerializer
+    permission_classes = [DRFTenantPermission]
 
 class AcceptInvitationAPIView(views.APIView):
     """
@@ -223,3 +252,22 @@ class AuditLogViewSet(TenantAwareViewSet):
             queryset = queryset.filter(user__email__iexact=user_email)
 
         return queryset.order_by('-created_at')
+
+class HealthCheckAPIView(views.APIView):
+    """
+    Tenant-scoped health and observability API.
+    """
+    permission_classes = [DRFTenantPermission]
+
+    def get(self, request):
+        tenant = request.tenant
+        quotas = Quota.objects.filter(tenant=tenant)
+        quota_data = {q.resource_name: {'limit': q.limit_value, 'usage': q.current_usage} for q in quotas}
+        
+        return response.Response({
+            'status': 'healthy',
+            'tenant': tenant.name,
+            'maintenance_mode': tenant.is_maintenance,
+            'storage_prefix': f"tenants/{tenant.id}/",
+            'quotas': quota_data
+        })

@@ -185,6 +185,9 @@ We provide a comprehensive REST API layer that leverages the platform's multi-te
 6.  **Public Onboarding API**: Build custom registration flows via `/api/v1/onboard/`.
 7.  **Profile & Security API**: Self-service profile updates and password changes (`/api/v1/auth/me/`, `/api/v1/auth/password/`).
 8.  **Team & Invitation Lifecycle**: Full CRUD for team members and lifecycle actions (resend/revoke) for invitations via REST.
+9.  **Maintenance & Logic Controls**: Programmatically toggle `is_maintenance` via `/api/v1/settings/`.
+10. **Headless Quota Management**: Full CRUD for usage limits via `/api/v1/quotas/`.
+11. **Atomic GDPR Purge**: Trigger full tenant data destruction via `/api/v1/settings/<id>/purge-data/`.
 
 #### 🛡️ Security Check:
 If a user with an API key for "Tenant A" tries to access `/api/v1/products/` with a Host header for "Tenant B", the system will return `401 Unauthorized` or an empty set, as the identifier resolver and the ViewSet work in tandem to enforce isolation.
@@ -194,3 +197,62 @@ If a user with an API key for "Tenant A" tries to access `/api/v1/products/` wit
 - `tenants/api_views.py`: Generic resource and search endpoints.
 - `products/api_views.py`: Specific product resource endpoints.
 - `core/urls.py`: The versioned API router and auth configuration.
+
+---
+
+## 10. Usage Quotas & Tiered Limits
+
+### 🔴 The Problem
+How do you monetize your SaaS? You need to limit usage (e.g., "Standard plan = 50 products"). Hardcoding these limits into your views is a maintenance nightmare.
+
+### 🟢 The Solution: Quota Service Orchestration
+A centralized system to track, enforce, and manage resource limits.
+
+#### 🛠️ Implementation Details:
+1.  **Quota Model**: A tenant-aware key-value store (`resource_name` vs `limit_value`).
+2.  **Quota Service**: `tenants/services_quota.py` provides a `check_quota` helper.
+3.  **Enforcement**: Call `check_quota(tenant, 'max_products')` during any creation action. The service automatically calculates current usage and validates against the limit.
+
+---
+
+## 11. Maintenance Mode (Graceful Governance)
+
+### 🔴 The Problem
+A client hasn't paid their bill, or you need to perform a migration on a specific tenant's data. You need a way to "turn off" their access without disabling the entire platform.
+
+### 🟢 The Solution: Middleware Lockout
+A tenant-aware circuit breaker at the routing layer.
+
+#### 🛠️ Implementation Details:
+1.  **Circuit Breaker**: The `Tenant` model has an `is_maintenance` Boolean.
+2.  **Middleware Hook**: `TenantMiddleware` checks this flag immediately after resolving the tenant.
+3.  **Graceful 503**: If active, the middleware short-circuits the request and returns a branded 503 Service Unavailable page.
+4.  **Admin Bypass**: Staff users and internal admin routes are exempt, allowing you to fix issues while the tenant is "off".
+
+---
+
+## 12. GDPR Purge (Right to be Forgotten)
+
+### 🔴 The Problem
+GDPR laws require that if a customer leaves, you must delete ALL their data. Finding every row across 10+ tables is prone to human error.
+
+### 🟢 The Solution: Cascading Erasure
+Leveraging database-level constraints for 100% data destruction.
+
+#### 🛠️ Implementation Details:
+1.  **Cascade Root**: Every `TenantAwareModel` uses `on_delete=models.CASCADE` on its `tenant` field.
+## 13. Enterprise Security Policies (The Diamond Audit)
+
+To ensure 100% production excellence, the engine enforces these automated security and consistency policies:
+
+### 🚫 Subscription Deactivation
+If a tenant is marked `is_active=False`, the `TenantMiddleware` immediately blocks all traffic with a `403 Forbidden`. This is handled at the routing layer, so no business logic is ever executed for disabled accounts.
+
+### 🍱 Admin Choice Isolation
+The `TenantAdminMixin` automatically filters all Foreign Key and Many-to-Many dropdowns in the Django Admin. If you are editing an object for "Tenant A", you will only see "Tenant A" options in selectable menus, preventing cross-tenant data leaks during administrative tasks.
+
+### 🔄 Automated Quota Cleanup
+The engine listens for `post_delete` signals on all `TenantAwareModel` instances. When a resource is deleted, its corresponding usage count is automatically decremented (following the `max_<model_name>s` convention), ensuring your billing and limits are always mathematically accurate.
+
+### 🛠️ SEO Canonicalization
+The system automatically detects if a tenant has multiple domains. It will perform a **301 Permanent Redirect** from any secondary domain to the designated Primary domain, preventing search engine penalties for duplicate content.

@@ -19,8 +19,19 @@ class InvitationService:
             role=role,
             expires_at=expires_at
         )
-        # In a real system, you would call an email service here
-        # send_invitation_email(invitation)
+
+        # Send the branded email
+        from .services_email import TenantEmailService
+        try:
+            TenantEmailService.send_tenant_email(
+                tenant=tenant,
+                subject=f"Inivitation to join {tenant.name}",
+                message=f"Hello,\n\nYou have been invited to join {tenant.name} as a {role_name}.",
+                recipient_list=[email]
+            )
+        except:
+            pass
+            
         return invitation
 
     @staticmethod

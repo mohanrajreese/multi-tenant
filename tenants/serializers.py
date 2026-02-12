@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import AuditLog, Membership, TenantInvitation, Tenant, Role, Domain
+from .models import AuditLog, Membership, TenantInvitation, Tenant, Role, Domain, Quota
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 
 User = get_user_model()
 
@@ -42,7 +43,12 @@ class RoleSerializer(serializers.ModelSerializer):
 class TenantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tenant
-        fields = ['id', 'name', 'slug', 'created_at']
+        fields = [
+            'id', 'name', 'slug', 'logo', 
+            'primary_color', 'secondary_color', 
+            'support_email', 'website', 
+            'is_maintenance', 'config', 'created_at'
+        ]
         read_only_fields = ['id', 'slug', 'created_at']
 
 class DomainSerializer(serializers.ModelSerializer):
@@ -76,6 +82,13 @@ class OnboardingSerializer(serializers.Serializer):
     admin_password = serializers.CharField(write_only=True)
     domain_name = serializers.CharField(max_length=255, required=False)
 
+    # Branding / Contact (Optional)
+    logo = serializers.ImageField(required=False)
+    primary_color = serializers.CharField(max_length=7, required=False)
+    secondary_color = serializers.CharField(max_length=7, required=False)
+    support_email = serializers.EmailField(required=False)
+    website = serializers.URLField(required=False)
+
     def validate_tenant_name(self, value):
         from django.utils.text import slugify
         slug = slugify(value)
@@ -100,3 +113,9 @@ class MembershipSerializer(serializers.ModelSerializer):
         model = Membership
         fields = ['id', 'user_email', 'role', 'role_name', 'is_active', 'joined_at']
         read_only_fields = ['id', 'joined_at', 'user_email', 'role_name']
+
+class QuotaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Quota
+        fields = ['id', 'resource_name', 'limit_value', 'current_usage']
+        read_only_fields = ['id', 'current_usage']

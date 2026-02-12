@@ -1,6 +1,7 @@
 from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import Permission
+from .storage_utils import tenant_path
 
 class Tenant(models.Model):
     """
@@ -10,6 +11,19 @@ class Tenant(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, help_text="Unique name for the tenant (e.g., acme-corp)")
     
+    # Branding
+    logo = models.ImageField(upload_to=tenant_path, null=True, blank=True)
+    primary_color = models.CharField(max_length=7, default="#000000", help_text="Hex color code")
+    secondary_color = models.CharField(max_length=7, default="#ffffff", help_text="Hex color code")
+
+    # Enterprise Metadata
+    support_email = models.EmailField(null=True, blank=True)
+    website = models.URLField(null=True, blank=True)
+
+    # SaaS Platinum Engine Features
+    is_maintenance = models.BooleanField(default=False, help_text="If True, all requests return 503")
+    config = models.JSONField(default=dict, blank=True, help_text="Dynamic tenant-specific settings")
+
     # Subscription/Status
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -174,3 +188,17 @@ class AuditLog(TenantAwareModel):
 
     def __str__(self):
         return f"{self.action} on {self.model_name} by {self.user}"
+class Quota(TenantAwareModel):
+    """
+    Usage limits for a tenant.
+    Example: 'max_products' = 100
+    """
+    resource_name = models.CharField(max_length=50, help_text="e.g., 'max_products', 'max_members'")
+    limit_value = models.IntegerField(default=0, help_text="0 means unlimited or restricted depending on logic")
+    current_usage = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('tenant', 'resource_name')
+
+    def __str__(self):
+        return f"{self.resource_name} limit for {self.tenant.name}"

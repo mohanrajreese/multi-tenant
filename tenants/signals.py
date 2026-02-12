@@ -33,3 +33,21 @@ def audit_post_delete(sender, instance, **kwargs):
         return
     
     AuditService.log_action(instance, 'DELETE')
+
+@receiver(post_delete)
+def quota_post_delete(sender, instance, **kwargs):
+    """
+    Automated Quota Cleanup: Decrement usage when a resource is deleted.
+    Assumes naming convention 'max_{model_name}s' (e.g., 'max_products').
+    """
+    if not isinstance(instance, TenantAwareModel) or isinstance(instance, AuditLog):
+        return
+    
+    from .services_quota import QuotaService
+    resource_name = f"max_{instance._meta.model_name}s"
+    
+    try:
+        QuotaService.decrement_usage(instance.tenant, resource_name)
+    except:
+        # If no quota exists for this resource, it's a no-op
+        pass

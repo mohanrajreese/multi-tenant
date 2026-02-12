@@ -28,20 +28,25 @@ class TenantService:
 
     @classmethod
     @transaction.atomic
-    def onboard_tenant(cls, tenant_name: str, admin_email: str, admin_password: str, domain_name: str = None) -> tuple:
+    def onboard_tenant(cls, tenant_name: str, admin_email: str, admin_password: str, domain_name: str = None, **kwargs) -> tuple:
         """
         Orchestrates the creation of a new Tenant ecosystem.
         """
         # 1. Normalize Input
         clean_slug = slugify(tenant_name)
+        # 2. Get the platform base domain from settings (default: localhost)
+        from .services_domain import DomainService
+        base_domain = DomainService.get_base_domain()
+        
         # If no domain provided, use the slug (e.g., acme.localhost)
-        final_domain = domain_name or f"{clean_slug}.localhost"
+        final_domain = domain_name or f"{clean_slug}.{base_domain}"
         # 2. Guard: Validate business rules
         cls.validate_onboarding_data(clean_slug, final_domain, admin_email)
         # 3. Create Entities
         tenant = Tenant.objects.create(
             name=tenant_name,
-            slug=clean_slug
+            slug=clean_slug,
+            **kwargs
         )
         domain = Domain.objects.create(
             tenant=tenant,
@@ -70,6 +75,72 @@ class TenantService:
             role=admin_role
         )
         # 4. Optional: Post-creation hooks (Send welcome email, setup defaults)
-        # TODO: Implement this
-        # cls._setup_default_settings(tenant)
+        from .services_email import TenantEmailService
+        try:
+            TenantEmailService.send_tenant_email(
+                tenant=tenant,
+                subject=f"Welcome to {tenant.name}!",
+                message=f"Hello,\n\nYour organization {tenant.name} has been successfully created. You can access it at {final_domain}.",
+                recipient_list=[admin_email]
+            )
+        except Exception as e:
+            # We don't want to fail the whole onboarding if email fails, 
+            # but in a real app, we'd log this.
+            pass
+
         return tenant, admin_user
+    @classmethod
+    @transaction.atomic
+    def purge_tenant_data(cls, tenant):
+        """
+        Compliance: Fully delete a tenant and ALL associated data.
+        Leverages CASCADE and manual file cleanup.
+        """
+        import shutil
+        from django.conf import settings
+        from .conf import conf
+        
+        tenant_name = tenant.name
+        tenant_id = str(tenant.id)
+        
+        # 1. Delete Database Records (Cascades)
+        tenant.delete()
+
+        # 2. Cleanup Media Files
+        tenant_media_path = os.path.join(settings.MEDIA_ROOT, conf.STORAGE_PATH_PREFIX, tenant_id)
+        if os.path.exists(tenant_media_path):
+            shutil.rmtree(tenant_media_path)
+            
+        return f"Successfully purged all data and files for {tenant_name}."
+
+    @classmethod
+    def export_tenant_data(cls, tenant):
+        """
+        GDPR Portability: Export all tenant-specific data as a JSON dictionary.
+        """
+        from django.apps import apps
+        from .models import TenantAwareModel
+        
+        export_data = {
+            'tenant': {
+                'name': tenant.name,
+                'slug': tenant.slug,
+                'config': tenant.config
+            },
+            'resources': {}
+        }
+        
+        # Discover all TenantAwareModels and export their rows
+        for model in apps.get_models():
+            if issubclass(model, TenantAwareModel):
+                # We skip AuditLog as it's massive, but could be included
+                if model.__name__ == 'AuditLog': continue
+                
+                rows = model.objects.filter(tenant=tenant)
+                export_data['resources'][model._meta.label] = [
+                    # Dynamic serialization of basic fields
+                    {f.name: str(getattr(row, f.name)) for f in model._meta.fields if f.name != 'tenant'}
+                    for row in rows
+                ]
+                
+        return export_data
