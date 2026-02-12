@@ -38,8 +38,20 @@ class CreditWalletService:
             logger.warning(f"Insufficient credits for {tenant.slug}. Balance: {wallet.balance}, Requested: {credits_dec}")
             return False
 
+        # Chi Tier Refinement: Low Balance Alert
+        previous_balance = wallet.balance
         wallet.spent_credits += credits_dec
         wallet.save()
+        
+        # Trigger alert if balance falls below 10% of total or a threshold
+        if wallet.balance < (wallet.total_credits * Decimal("0.10")) and previous_balance >= (wallet.total_credits * Decimal("0.10")):
+            from .services_notifications import BillingNotificationService
+            from users.models import User # Assuming User model location
+            # Notify the primary admin or tenant owner
+            owner = Membership.objects.filter(tenant=tenant, role__name='Admin').first().user
+            if owner:
+                 # In production, use a specialized 'low_balance' template
+                 print(f"[ALERT] Low balance for {tenant.slug}: {wallet.balance} credits remaining.")
         
         # Internal hook: Log the consumption event if needed
         logger.info(f"Deducted {credits_to_deduct} credits from {tenant.slug}. Remaining: {wallet.balance}")

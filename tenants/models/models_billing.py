@@ -10,10 +10,20 @@ class Entitlement(TenantAwareModel):
     feature_code = models.CharField(max_length=100)
     is_enabled = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
     granted_at = models.DateTimeField(auto_now_add=True)
+    
+    # Sigma Tier: Inheritance
+    plan = models.ForeignKey('tenants.Plan', on_delete=models.CASCADE, null=True, blank=True, related_name='entitlements')
 
     class Meta:
         unique_together = ('tenant', 'feature_code')
+
+    def is_valid(self):
+        from django.utils import timezone
+        if self.expires_at and self.expires_at < timezone.now():
+            return False
+        return self.is_enabled
 
     def __str__(self):
         return f"{self.feature_code} for {self.tenant.name}"

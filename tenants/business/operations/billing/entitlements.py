@@ -12,18 +12,34 @@ class EntitlementsEngine:
     @staticmethod
     def has_access(feature_code: str) -> bool:
         """
-        Checks if the current active tenant has access to a specific feature.
+        Checks if the current active tenant has access to a feature.
+        Logic order:
+        1. Explicit Tenant Entitlement (Overrides Plan)
+        2. Plan-level Default Entitlement
         """
         tenant = get_current_tenant()
         if not tenant:
             return False
-            
-        # In production, this would be heavily cached using TenantCache
-        return Entitlement.objects.filter(
+
+        # 1. Check Explicit Tenant Entitlement
+        ent = Entitlement.objects.filter(
             tenant=tenant,
-            feature_code=feature_code,
-            is_enabled=True
-        ).exists()
+            feature_code=feature_code
+        ).first()
+
+        if ent:
+            return ent.is_valid()
+
+        # 2. Inherit from Plan if exists
+        if hasattr(tenant, 'plan') and tenant.plan:
+            plan_ent = Entitlement.objects.filter(
+                plan=tenant.plan,
+                feature_code=feature_code
+            ).first()
+            if plan_ent:
+                return plan_ent.is_valid()
+            
+        return False
 
     @staticmethod
     def grant_feature(tenant, feature_code: str, metadata: dict = None):

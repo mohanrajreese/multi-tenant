@@ -29,13 +29,22 @@ class ResourceGovernorMiddleware:
             }, status=403)
 
         # 2. Automated Rate Limiting / Slow Down (Noisy Neighbor Protection)
-        # We track request velocity in the last 1 minute in cache
         cache_key = f"governor_velocity_{tenant.id}"
         velocity = cache.get(cache_key, 0)
         
+        # Psi Tier Refinement: Auto-Recovery
+        if cache.get(f"auto_quarantine_{tenant.id}"):
+            if velocity < 100: # If velocity has dropped below 100/min
+                cache.delete(f"auto_quarantine_{tenant.id}")
+                logger.info(f"AUTO-RECOVERY triggered for {tenant.slug}. Releasing from quarantine.")
+            else:
+                return JsonResponse({"error": "Auto-quarantine in effect. Please reduce traffic."}, status=429)
+
         # Soft Limit: Slow down
         if velocity > 1000: # 1k requests/min
-            time.sleep(0.1) # Artificially inject latency to protect shared resources
+            time.sleep(0.1) 
+            # Observation Logging for Admin Dashboard
+            cache.set(f"governor_throttle_active_{tenant.id}", True, timeout=60)
             logger.info(f"Injecting protective latency for high-velocity tenant: {tenant.slug}")
 
         # Hard Limit: Quarantine
@@ -54,7 +63,9 @@ class ResourceGovernorMiddleware:
             err_count = cache.get(err_key, 0) + 1
             cache.set(err_key, err_count, timeout=60)
             
-            if err_count > 50: # More than 50 server errors per minute
+            if err_count > 50: 
+                # Observation Logging for Admin Dashboard
+                cache.set(f"governor_unhealthy_{tenant.id}", True, timeout=60)
                 logger.critical(f"HEALTH WARNING: Tenant {tenant.slug} is experiencing high error rates ({err_count}/min).")
 
         return response
