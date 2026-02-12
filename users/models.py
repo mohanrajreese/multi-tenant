@@ -2,7 +2,7 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from tenants.mixins import TenantUserMixin
+from tenants.api.mixins import TenantUserMixin
 
 # Create your models here.
 class User(AbstractUser, TenantUserMixin):

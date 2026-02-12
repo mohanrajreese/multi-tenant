@@ -5,9 +5,13 @@ class TenantsConfig(AppConfig):
     name = "tenants"
 
     def ready(self):
-        import tenants.signals
-        from .registry import SearchRegistry
+        from . import signals
+        from .infrastructure import checks # Ensure checks are registered
+        from .infrastructure.registry import SearchRegistry
         from .models import Membership, AuditLog
+        
+        # Ensure our storage router is correctly initialized if needed
+        from .infrastructure.storage_backends import StorageRouter
 
         # Register internal models for search
         SearchRegistry.register(

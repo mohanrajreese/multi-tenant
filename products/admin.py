@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Product
-from tenants.admin_mixins import TenantAdminMixin
+from tenants.admin.admin_mixins import TenantAdminMixin
 
 @admin.register(Product)
 class ProductAdmin(TenantAdminMixin, admin.ModelAdmin):

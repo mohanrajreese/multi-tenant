@@ -16,7 +16,8 @@ dependencies = [
     "django-storages (>=1.14.6,<2.0.0)",
     "dnspython (>=2.8.0,<3.0.0)",
     "djangorestframework (>=3.16.1,<4.0.0)",
-    "drf-spectacular (>=0.29.0,<0.30.0)"
+    "drf-spectacular (>=0.29.0,<0.30.0)",
+    "boto3 (>=1.42.47,<2.0.0)"
 ]
 
 

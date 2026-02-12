@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from .models import TenantAwareModel, AuditLog
-from .services_audit import AuditService
+from .business.security.services_audit import AuditService
 from .tasks import async_log_audit, async_trigger_webhook
 import sys
 
@@ -67,7 +67,7 @@ def quota_post_delete(sender, instance, **kwargs):
     
     # Quota decrement remains synchronous for high-consistency 
     # resource release, but we keep it fast.
-    from .services_quota import QuotaService
+    from .business.core.services_quota import QuotaService
     resource_name = f"max_{instance._meta.model_name}s"
     try:
         QuotaService.decrement_usage(instance.tenant, resource_name)
@@ -89,7 +89,7 @@ def automated_webhook_post_save(sender, instance, created, **kwargs):
     }
     
     if IS_TESTING:
-        from .services_webhook import WebhookService
+        from tenants.business.security.services_webhook import WebhookService
         WebhookService.trigger_event(instance.tenant, event_type, data)
     else:
         async_trigger_webhook.delay(
@@ -107,7 +107,7 @@ def automated_webhook_post_delete(sender, instance, **kwargs):
     data = {'id': str(instance.pk), 'model': instance._meta.label}
     
     if IS_TESTING:
-        from .services_webhook import WebhookService
+        from tenants.business.security.services_webhook import WebhookService
         WebhookService.trigger_event(instance.tenant, event_type, data)
     else:
         async_trigger_webhook.delay(

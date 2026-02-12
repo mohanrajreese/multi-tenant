@@ -1,7 +1,7 @@
 from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import Permission
-from .storage_utils import tenant_path
+from .infrastructure.storage_utils import tenant_path
 
 class Plan(models.Model):
     """
@@ -101,7 +101,7 @@ class TenantQuerySet(models.QuerySet):
 
 class TenantManager(models.Manager):
     def get_queryset(self):
-        from .utils import get_current_tenant
+        from .infrastructure.utils import get_current_tenant
         tenant = get_current_tenant()
         
         # We start with the base queryset
@@ -131,7 +131,7 @@ class TenantAwareModel(models.Model):
         abstract = True
     def save(self, *args, **kwargs):
         if not self.tenant_id:
-            from .utils import get_current_tenant
+            from .infrastructure.utils import get_current_tenant
             current_tenant = get_current_tenant()
             if current_tenant:
                 self.tenant = current_tenant

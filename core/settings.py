@@ -52,13 +52,15 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "tenants.middleware.TenantMiddleware",
+    "tenants.middleware.middleware.TenantResolutionMiddleware",
+    "tenants.middleware.middleware.TenantSecurityMiddleware",
+    "tenants.middleware.middleware.TenantPerformanceMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "tenants.middleware_user.UserContextMiddleware",
+    "tenants.middleware.middleware_user.UserContextMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware", # Add this
@@ -163,7 +165,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_THROTTLE_CLASSES': [
-        'tenants.throttling.TenantRateThrottle',
+        'tenants.api.throttling.TenantRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'tenant': '1000/day',

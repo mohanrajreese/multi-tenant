@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from tenants.decorators import tenant_permission_required
+from tenants.api.decorators import tenant_permission_required
 from django.utils.decorators import method_decorator
 from .models import Product
 

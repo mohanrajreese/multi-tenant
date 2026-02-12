@@ -1,6 +1,6 @@
 from functools import wraps
 from .models import Tenant
-from .utils import set_current_tenant
+from .infrastructure.utils import set_current_tenant
 
 def tenant_context_task(func):
     """
@@ -32,7 +32,7 @@ def tenant_context_task(func):
 def async_log_audit(model_label, object_id, action, old_data=None, tenant_id=None):
     """Offloaded audit logging."""
     from django.apps import apps
-    from .services_audit import AuditService
+    from .business.security.services_audit import AuditService
     model = apps.get_model(model_label)
     instance = model.objects.get(pk=object_id)
     AuditService.log_action(instance, action, old_data)
@@ -40,7 +40,7 @@ def async_log_audit(model_label, object_id, action, old_data=None, tenant_id=Non
 @tenant_context_task
 def async_trigger_webhook(tenant_id, event_type, data):
     """Offloaded webhook dispatch."""
-    from .services_webhook import WebhookService
+    from .business.security.services_webhook import WebhookService
     from .models import Tenant
     tenant = Tenant.objects.get(id=tenant_id)
     WebhookService.trigger_event(tenant, event_type, data)

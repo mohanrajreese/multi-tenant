@@ -1,6 +1,6 @@
 from django.db import models
 from tenants.models import TenantAwareModel
-from tenants.utils_storage import tenant_file_path
+from tenants.infrastructure.utils_storage import tenant_file_path
 
 class Product(TenantAwareModel):
     name = models.CharField(max_length=255)

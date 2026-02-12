@@ -3,13 +3,13 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from .views import IndexView, OnboardView, AcceptInvitationView
-from .views_dashboard import (
+from .views.views import IndexView, OnboardView, AcceptInvitationView
+from .views.views_dashboard import (
     DashboardHomeView, InviteUserView, ResendInviteView, 
     RevokeInviteView, AuditLogView, DomainManagementView, 
     GlobalSearchView
 )
-from .api_views import (
+from .api.views.api_views import (
     AuditLogViewSet, 
     MembershipViewSet, 
     OnboardingViewSet, 
@@ -23,7 +23,8 @@ from .api_views import (
     AcceptInvitationAPIView,
     ChangePasswordView,
     QuotaViewSet,
-    HealthCheckAPIView
+    HealthCheckAPIView,
+    TenantSwitcherAPIView
 )
 
 # API v1 Router
@@ -41,7 +42,7 @@ router.register(r'domains', DomainViewSet, basename='api_domain')
 router.register(r'settings', TenantViewSet, basename='api_settings')
 
 # --- Dynamic External App Registration ---
-from .registry import APIRegistry
+from .infrastructure.registry import APIRegistry
 for prefix, viewset, basename in APIRegistry.get_viewsets():
     router.register(prefix, viewset, basename=basename)
 

@@ -1,7 +1,7 @@
 from rest_framework.decorators import action
 from rest_framework import status, response
-from tenants.api_base import TenantAwareViewSet, DRFTenantPermission
-from tenants.services_bulk import BulkImportService
+from tenants.api.views.api_base import TenantAwareViewSet, DRFTenantPermission
+from tenants.business.operations.services_bulk import BulkImportService
 from .models import Product
 from .serializers import ProductSerializer
 

@@ -5,7 +5,7 @@ class ProductsConfig(AppConfig):
     name = "products"
 
     def ready(self):
-        from tenants.registry import SearchRegistry, APIRegistry
+        from tenants.infrastructure.registry import SearchRegistry, APIRegistry
         from .models import Product
         from .api_views import ProductViewSet
 
