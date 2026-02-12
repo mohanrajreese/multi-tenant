@@ -6,7 +6,8 @@ from .tasks import async_log_audit, async_trigger_webhook
 import sys
 
 # We skip offloading in tests to ensure assertions work correctly
-IS_TESTING = 'test' in sys.argv
+from django.conf import settings
+IS_TESTING = getattr(settings, 'TESTING', False) or 'test' in sys.argv or 'pytest' in sys.modules
 
 @receiver(pre_save)
 def audit_pre_save(sender, instance, **kwargs):

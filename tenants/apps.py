@@ -8,10 +8,11 @@ class TenantsConfig(AppConfig):
         from . import signals
         from .infrastructure import checks # Ensure checks are registered
         from .infrastructure.registry import SearchRegistry
+        from .infrastructure.utils.telemetry import setup_telemetry
         from .models import Membership, AuditLog
         
-        # Ensure our storage router is correctly initialized if needed
-        from .infrastructure.storage.factory import StorageFactory
+        # 🛡️ Initialize Distributed Tracing
+        setup_telemetry()
 
         # Register internal models for search
         SearchRegistry.register(
