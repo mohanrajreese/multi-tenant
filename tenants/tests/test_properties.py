@@ -28,7 +28,12 @@ class TestSovereignProperties(TransactionTestCase):
         """
         Property: Balance must always be total_credits minus spent_credits.
         """
-        # Fresh state for each iteration
+        from tenants.domain.models.models_integration import WebhookEvent
+        from tenants.domain.models.models_governance import AuditLog
+        
+        # Fresh state for each iteration (Cascading cleanup)
+        AuditLog.objects.filter(tenant=self.tenant).delete()
+        WebhookEvent.objects.filter(tenant=self.tenant).delete()
         TenantCreditWallet.objects.filter(tenant=self.tenant).delete()
         
         expected_total = Decimal("0.0000")

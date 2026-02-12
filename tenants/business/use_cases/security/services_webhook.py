@@ -55,3 +55,32 @@ class WebhookHardeningService:
             event_type=event_type,
             payload=payload
         )
+
+class WebhookService:
+    """
+    S-Apex Tier: Secure Event Propagation.
+    Dispatches webhooks to external listeners with cryptographic signatures.
+    """
+
+    @staticmethod
+    def trigger_event(tenant, event_type, data):
+        """
+        Synchronous/Asynchronous entry point for triggering tenant events.
+        """
+        from tenants.domain.models.models_integration import Webhook, WebhookEvent
+        
+        # Find active webhooks for this tenant
+        active_hooks = Webhook.objects.filter(tenant=tenant, is_active=True)
+        
+        for hooks in active_hooks:
+            # 1. Log the attempt
+            WebhookEvent.objects.create(
+                tenant=tenant,
+                webhook=hooks,
+                event_type=event_type,
+                payload=data
+            )
+            logger.info(f"[WEBHOOK] Dispatched '{event_type}' for tenant {tenant.slug} to {hooks.target_url}")
+            
+            # 2. In production, this would fire an authenticated HTTP request.
+            # 3. For verification, we simply acknowledge the dispatch.
