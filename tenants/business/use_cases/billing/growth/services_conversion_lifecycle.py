@@ -51,7 +51,7 @@ class TrialConversionService:
         """
         Converts a trialing or expired tenant to a paid plan.
         """
-        from .services_plan import PlanService # Avoid circular
+        from tenants.business.use_cases.operations.services_plan import PlanService # Avoid circular
         from tenants.domain.models import Plan
         
         plan = Plan.objects.get(slug=plan_slug)

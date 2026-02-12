@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from django.utils import timezone
 from tenants.domain.models import Tenant
 from tenants.domain.models.models_billing import Entitlement
-from .services_notifications import BillingNotificationService
+from tenants.business.use_cases.billing.growth.services_notifications import BillingNotificationService
 
 logger = logging.getLogger(__name__)
 

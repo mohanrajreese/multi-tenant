@@ -2,7 +2,7 @@ import logging
 from uuid import uuid4
 from django.db import transaction
 from tenants.domain.models import Tenant
-from .services_wallet import CreditWalletService
+from tenants.business.use_cases.billing.core.services_wallet import CreditWalletService
 
 logger = logging.getLogger(__name__)
 

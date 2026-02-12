@@ -2,8 +2,8 @@ import logging
 from datetime import date
 from django.db import transaction
 from tenants.domain.models import Tenant
-from .services_revenue import RevenueRecognitionService
-from .services_notifications import BillingNotificationService
+from tenants.business.use_cases.billing.core.services_revenue import RevenueRecognitionService
+from tenants.business.use_cases.billing.growth.services_notifications import BillingNotificationService
 
 logger = logging.getLogger(__name__)
 

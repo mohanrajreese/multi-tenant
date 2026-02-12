@@ -45,7 +45,7 @@ class CreditWalletService:
         
         # Trigger alert if balance falls below 10% of total or a threshold
         if wallet.balance < (wallet.total_credits * Decimal("0.10")) and previous_balance >= (wallet.total_credits * Decimal("0.10")):
-            from .services_notifications import BillingNotificationService
+            from tenants.business.use_cases.billing.growth.services_notifications import BillingNotificationService
             from users.models import User # Assuming User model location
             # Notify the primary admin or tenant owner
             owner = Membership.objects.filter(tenant=tenant, role__name='Admin').first().user

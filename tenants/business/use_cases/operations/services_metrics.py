@@ -31,7 +31,7 @@ class MetricsService:
 
         # Chi Tier: Credit Drawdown Logic
         if tenant.config.get('billing', {}).get('use_credits', False):
-            from tenants.business.use_cases.billing.services_wallet import CreditWalletService
+            from tenants.business.use_cases.billing.core.services_wallet import CreditWalletService
             # Assume 1 credit per unit of usage for demo
             CreditWalletService.drawdown(tenant, float(value))
         
