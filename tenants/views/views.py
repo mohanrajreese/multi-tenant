@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from tenants.business.use_cases.core.services_onboarding import OnboardingService
+from tenants.business.use_cases.core.services_onboarding import OnboardTenantUseCase
+from tenants.business.dto import TenantOnboardingDTO
+from tenants.business.exceptions import OnboardingConflictError
 from tenants.business.use_cases.operations.services_invitation import InvitationService
 from tenants.domain.models import TenantInvitation
 
 class IndexView(View):
     def get(self, request):
-        if request.tenant:
+        if hasattr(request, 'tenant') and request.tenant:
             return redirect('/dashboard/')
         return render(request, 'index.html')
 
@@ -20,17 +22,21 @@ class OnboardView(View):
         password = request.POST.get('password')
         
         try:
-            tenant, admin_user = OnboardingService.onboard_tenant(
+            dto = TenantOnboardingDTO(
                 tenant_name=name,
                 admin_email=email,
                 admin_password=password
             )
+            tenant, admin_user = OnboardTenantUseCase.execute(dto)
+            
             # Find the primary domain to redirect
             primary_domain = tenant.domains.filter(is_primary=True).first()
             redirect_url = f"http://{primary_domain.domain}:8000/auth/login/"
             return redirect(redirect_url)
-        except ValueError as e:
+        except OnboardingConflictError as e:
             return render(request, 'onboard.html', {'error': str(e)})
+        except Exception as e:
+            return render(request, 'onboard.html', {'error': "An unexpected error occurred."})
 
 class AcceptInvitationView(View):
     def get(self, request, token):

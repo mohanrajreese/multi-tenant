@@ -1,6 +1,6 @@
 from rest_framework import viewsets, response, status, permissions
 from ..serializers.serializers import OnboardingSerializer
-from tenants.business.use_cases.onboarding.onboard_tenant import OnboardTenantUseCase
+from tenants.business.use_cases.core.services_onboarding import OnboardTenantUseCase
 from tenants.business.dto import TenantOnboardingDTO
 
 class OnboardingViewSet(viewsets.ViewSet):

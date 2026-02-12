@@ -1,68 +1,57 @@
-import requests
 import hmac
 import hashlib
-import json
-from tenants.domain.models import Webhook, WebhookEvent
+import logging
+from django.core.cache import cache
+from tenants.domain.models.models_billing import BillingEvent
 
-class WebhookService:
+logger = logging.getLogger(__name__)
+
+class WebhookHardeningService:
     """
-    Dispatches events to tenant-defined URLs.
+    Upsilon Tier: Webhook Security & Idempotency.
+    Protects against replay attacks and ensures delivery reliability.
     """
 
     @staticmethod
-    def trigger_event(tenant, event_type, data):
+    def verify_signature(payload: str, signature: str, secret: str) -> bool:
         """
-        Finds all active webhooks for a tenant interested in the event.
+        Verifies the cryptographic signature of an incoming webhook.
         """
-        webhooks = Webhook.objects.filter(
-            tenant=tenant, 
-            is_active=True,
-            events__contains=event_type
+        if not signature or not secret:
+            return False
+
+        expected = hmac.new(
+            secret.encode('utf-8'),
+            payload.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+
+        return hmac.compare_digest(expected, signature)
+
+    @staticmethod
+    def is_idempotent(event_id: str) -> bool:
+        """
+        Check if we have already processed this event ID.
+        Uses a 2-tier check: Cache (fast) and Database (persistent).
+        """
+        # 1. Cache hit (last 24h)
+        if cache.get(f"webhook_idemp_{event_id}"):
+            return False
+
+        # 2. Database hit
+        if BillingEvent.objects.filter(provider_event_id=event_id).exists():
+            return False
+
+        # Mark as seen in cache for fast subsequent hits
+        cache.set(f"webhook_idemp_{event_id}", True, timeout=86400)
+        return True
+
+    @staticmethod
+    def log_event(tenant, event_id, event_type, payload):
+        """Logs the event for auditing and troubleshooting."""
+        return BillingEvent.objects.create(
+            tenant=tenant,
+            provider_event_id=event_id,
+            event_type=event_type,
+            payload=payload
         )
-
-        for webhook in webhooks:
-            # 1. Prepare Payload
-            payload = {
-                'event': event_type,
-                'tenant_id': str(tenant.id),
-                'data': data
-            }
-            payload_json = json.dumps(payload)
-
-            # 2. Sign Payload (Security)
-            headers = {'Content-Type': 'application/json'}
-            if webhook.secret:
-                signature = hmac.new(
-                    webhook.secret.encode(),
-                    payload_json.encode(),
-                    hashlib.sha256
-                ).hexdigest()
-                headers['X-Hub-Signature-256'] = f"sha256={signature}"
-
-            # 3. Dispatch (In a real app, this would be a Celery task)
-            try:
-                response = requests.post(
-                    webhook.target_url, 
-                    data=payload_json, 
-                    headers=headers,
-                    timeout=5
-                )
-                
-                # 4. Log the Delivery
-                WebhookEvent.objects.create(
-                    tenant=tenant,
-                    webhook=webhook,
-                    event_type=event_type,
-                    payload=payload,
-                    response_status=response.status_code,
-                    response_body=response.text[:500]
-                )
-            except Exception as e:
-                WebhookEvent.objects.create(
-                    tenant=tenant,
-                    webhook=webhook,
-                    event_type=event_type,
-                    payload=payload,
-                    response_status=0,
-                    response_body=str(e)[:500]
-                )

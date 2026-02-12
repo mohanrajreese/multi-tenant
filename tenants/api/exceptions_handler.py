@@ -1,6 +1,6 @@
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
-from .business.exceptions import SovereignError
+from tenants.business.exceptions import SovereignError
 
 def sovereign_exception_handler(exc, context):
     """
