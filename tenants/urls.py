@@ -35,6 +35,9 @@ router.register(r'domains', DomainViewSet, basename='api_domain')
 router.register(r'settings', TenantViewSet, basename='api_settings')
 router.register(r'support-impersonation', ImpersonationViewSet, basename='api_impersonation')
 
+from .api.views.views_intelligence import IntelligenceViewSet
+router.register(r'intelligence', IntelligenceViewSet, basename='api_intelligence')
+
 # --- Dynamic External App Registration ---
 from .infrastructure.registry import APIRegistry
 for prefix, viewset, basename in APIRegistry.get_viewsets():
