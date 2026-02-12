@@ -1,6 +1,7 @@
 from .providers.google import GoogleSSOAdapter
 from .providers.okta import OktaSSOAdapter
 from .providers.azure import AzureSSOAdapter
+from .providers.enterprise import OIDCProvider, SAMLProvider
 
 class IdentityFactory:
     """
@@ -18,5 +19,9 @@ class IdentityFactory:
             return OktaSSOAdapter(config)
         elif provider_type == 'azure':
             return AzureSSOAdapter(config)
+        elif provider_type == 'oidc':
+            return OIDCProvider(config)
+        elif provider_type == 'saml':
+            return SAMLProvider(config)
         
         return GoogleSSOAdapter(config)

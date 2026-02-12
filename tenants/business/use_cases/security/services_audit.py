@@ -27,13 +27,19 @@ class AuditService:
         elif action == 'CREATE':
             changes = {field: [None, str(value)] for field, value in model_to_dict(instance).items()}
         
-        AuditLog.objects.create(
+        from tenants.infrastructure.adapters.audit.factory import AuditFactory
+        
+        provider = AuditFactory.get_provider(tenant)
+        provider.log_event(
+            tenant_id=str(tenant.id),
+            actor_id=str(user.id) if user else 'system',
+            action=action,
+            target_model=instance.__class__.__name__,
+            target_id=str(instance.pk),
+            changes=changes,
+            # Pass objects for DatabaseProvider optimization
             tenant=tenant,
             user=user,
             impersonator=impersonator,
-            action=action,
-            model_name=instance.__class__.__name__,
-            object_id=str(instance.pk),
-            object_repr=str(instance),
-            changes=changes
+            object_repr=str(instance)
         )

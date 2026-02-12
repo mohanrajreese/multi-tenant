@@ -1,5 +1,6 @@
 from .providers.smtp import SMTPProvider
 from .providers.sendgrid import SendGridProvider
+from .providers.ses import SESProvider
 from .providers.twilio import TwilioProvider
 
 class CommunicationFactory:
@@ -19,6 +20,8 @@ class CommunicationFactory:
             return SMTPProvider(config)
         elif provider_type == 'sendgrid':
             return SendGridProvider(config)
+        elif provider_type == 'ses':
+            return SESProvider(config)
         
         # Fallback/Default
         return SMTPProvider(config)
