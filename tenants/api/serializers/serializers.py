@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from tenants.models import AuditLog, Membership, TenantInvitation, Tenant, Role, Domain, Quota
+from tenants.domain.models import AuditLog, Membership, TenantInvitation, Tenant, Role, Domain, Quota
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 

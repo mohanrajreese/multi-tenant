@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, exceptions
-from tenants.models import Membership
+from tenants.domain.models import Membership
 
 class TenantAwareViewSet(viewsets.ModelViewSet):
     """

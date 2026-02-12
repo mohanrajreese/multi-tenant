@@ -4,11 +4,11 @@ from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from django.contrib.auth.models import Permission
 
-from tenants.models import Tenant, Domain, Role, Membership, Plan
+from tenants.domain.models import Tenant, Domain, Role, Membership, Plan
 from tenants.business.exceptions import OnboardingConflictError
 from tenants.business.events import dispatch, TenantRegisteredEvent
 from tenants.business.dto import TenantOnboardingDTO
-from tenants.conf import conf
+from tenants.infrastructure.conf import conf
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class OnboardTenantUseCase:
         clean_slug = slugify(data.tenant_name)
         
         # Determine Domain (Legacy logic support)
-        from tenants.business.core.services_domain import DomainService
+        from tenants.business.use_cases.core.services_domain import DomainService
         base_domain = conf.BASE_SAAS_DOMAIN
         final_domain = data.domain_name or f"{clean_slug}.{base_domain}"
         
@@ -59,7 +59,7 @@ class OnboardTenantUseCase:
 
         # 2. Setup Plan
         if default_plan:
-            from tenants.business.operations.services_plan import PlanService
+            from tenants.business.use_cases.operations.services_plan import PlanService
             PlanService.apply_plan_to_tenant(tenant, default_plan)
 
         # 3. Setup Domain

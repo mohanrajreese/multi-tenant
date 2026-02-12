@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from .models import TenantAwareModel, AuditLog
-from .business.security.services_audit import AuditService
+from .business.use_cases.security.services_audit import AuditService
 from .tasks import async_log_audit, async_trigger_webhook
 import sys
 
@@ -77,7 +77,7 @@ def quota_post_delete(sender, instance, **kwargs):
     
     # Quota decrement remains synchronous for high-consistency 
     # resource release, but we keep it fast.
-    from .business.core.services_quota import QuotaService
+    from .business.use_cases.core.services_quota import QuotaService
     resource_name = f"max_{instance._meta.model_name}s"
     try:
         QuotaService.decrement_usage(instance.tenant, resource_name)
@@ -99,7 +99,7 @@ def automated_webhook_post_save(sender, instance, created, **kwargs):
     }
     
     if IS_TESTING:
-        from tenants.business.security.services_webhook import WebhookService
+        from tenants.business.use_cases.security.services_webhook import WebhookService
         WebhookService.trigger_event(instance.tenant, event_type, data)
     else:
         async_trigger_webhook.delay(
@@ -117,7 +117,7 @@ def automated_webhook_post_delete(sender, instance, **kwargs):
     data = {'id': str(instance.pk), 'model': instance._meta.label}
     
     if IS_TESTING:
-        from tenants.business.security.services_webhook import WebhookService
+        from tenants.business.use_cases.security.services_webhook import WebhookService
         WebhookService.trigger_event(instance.tenant, event_type, data)
     else:
         async_trigger_webhook.delay(
@@ -127,7 +127,7 @@ def automated_webhook_post_delete(sender, instance, **kwargs):
         )
 
 # Sigma Tier: Seat-Based Billing Sync
-from .models.models_identity import Membership
+from .domain.models.models_identity import Membership
 
 @receiver(post_save, sender=Membership)
 @receiver(post_delete, sender=Membership)
@@ -135,7 +135,7 @@ def sync_seats_on_membership_change(sender, instance, **kwargs):
     """
     Automatically syncs the subscription quantity when a membership is created or deleted.
     """
-    from .business.operations.billing.services_seats import SeatService
+    from .business.use_cases.billing.services_seats import SeatService
     # In production, this should be offloaded to a background task
     # to avoid blocking on external API calls.
     SeatService.handle_membership_change(instance.tenant)

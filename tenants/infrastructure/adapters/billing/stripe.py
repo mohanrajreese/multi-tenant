@@ -1,4 +1,4 @@
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 from .base import BillingProvider
 
 class StripeProvider:

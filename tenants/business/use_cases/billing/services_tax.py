@@ -1,5 +1,5 @@
 import logging
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 from .factory import BillingFactory
 
 logger = logging.getLogger(__name__)

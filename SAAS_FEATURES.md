@@ -564,7 +564,7 @@ A backend that swaps storage targets in real-time based on the tenant context.
 ### 34. Identity Sovereignty (Multi-SSO Protocol)
 Enterprise customers can now switch between multiple Single Sign-On providers (Google, Okta, Azure AD) without platform modification.
 
-- **IdentityService**: A universal orchestration utility in `tenants/business/security/services_sso.py`.
+- **IdentityService**: A universal orchestration utility in `tenants/business/use_cases/security/services_sso.py`.
 - **Strategy Pattern**: `IdentityFactory` resolves the provider at runtime based on `tenant.sso_config`.
 - **Domain Whitelisting**: Automated verification ensuring only corporate-authorized domains (e.g., `@acme.com`) can authenticate via third-party providers.
 - **Unified Profile Mapping**: Standardizes disparate vendor payloads (Google vs Okta) into a consistent internal user profile.

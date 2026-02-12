@@ -2,7 +2,7 @@ import requests
 import hmac
 import hashlib
 import json
-from tenants.models import Webhook, WebhookEvent
+from tenants.domain.models import Webhook, WebhookEvent
 
 class WebhookService:
     """

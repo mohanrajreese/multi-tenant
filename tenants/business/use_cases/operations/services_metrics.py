@@ -1,4 +1,4 @@
-from tenants.models import TenantMetric
+from tenants.domain.models import TenantMetric
 from django.db.models import Sum
 from django.utils import timezone
 
@@ -20,7 +20,7 @@ class MetricsService:
         )
         
         # Omega Tier: Metered Billing push
-        from .billing.factory import BillingFactory
+        from tenants.business.use_cases.billing.factory import BillingFactory
         # Omega Tier: Metered Billing Sync
         provider = BillingFactory.get_provider(tenant)
         try:
@@ -31,7 +31,7 @@ class MetricsService:
 
         # Chi Tier: Credit Drawdown Logic
         if tenant.config.get('billing', {}).get('use_credits', False):
-            from .billing.services_wallet import CreditWalletService
+            from tenants.business.use_cases.billing.services_wallet import CreditWalletService
             # Assume 1 credit per unit of usage for demo
             CreditWalletService.drawdown(tenant, float(value))
         

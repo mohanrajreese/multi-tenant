@@ -1,7 +1,7 @@
 import logging
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth import get_user_model
-from tenants.infrastructure.utils import get_current_tenant
+from tenants.infrastructure.utils.context import get_current_tenant
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class AdminImpersonationMiddleware(MiddlewareMixin):
                     return
 
                 # Inject impersonator context for use in Audit Logs
-                from tenants.infrastructure.utils import set_current_impersonator
+                from tenants.infrastructure.utils.context import set_current_impersonator
                 set_current_impersonator(impersonator)
                 
                 request.impersonator = impersonator

@@ -52,17 +52,17 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "tenants.middleware.middleware.TenantResolutionMiddleware",
-    "tenants.middleware.middleware.TenantSecurityMiddleware",
-    "tenants.middleware.middleware.TenantPerformanceMiddleware",
+    "tenants.infrastructure.middleware.middleware.TenantResolutionMiddleware",
+    "tenants.infrastructure.middleware.middleware.TenantSecurityMiddleware",
+    "tenants.infrastructure.middleware.middleware.TenantPerformanceMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "tenants.middleware.middleware_impersonation.AdminImpersonationMiddleware",
-    "tenants.middleware.middleware_resilience.ResourceGovernorMiddleware",
-    "tenants.middleware.middleware_user.UserContextMiddleware",
+    "tenants.infrastructure.middleware.middleware_impersonation.AdminImpersonationMiddleware",
+    "tenants.infrastructure.middleware.middleware_resilience.ResourceGovernorMiddleware",
+    "tenants.infrastructure.middleware.middleware_user.UserContextMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware", # Add this

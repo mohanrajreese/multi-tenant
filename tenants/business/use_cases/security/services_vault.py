@@ -1,7 +1,7 @@
 import logging
 import base64
 from django.conf import settings
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 
 logger = logging.getLogger(__name__)
 

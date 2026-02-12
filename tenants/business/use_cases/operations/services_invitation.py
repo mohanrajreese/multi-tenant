@@ -1,7 +1,7 @@
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
-from tenants.models import TenantInvitation, Role, Membership
+from tenants.domain.models import TenantInvitation, Role, Membership
 
 class InvitationService:
     @staticmethod
@@ -21,7 +21,7 @@ class InvitationService:
         )
 
         # Send the branded email
-        from tenants.business.core.services_email import TenantEmailService
+        from tenants.business.use_cases.core.services_email import TenantEmailService
         try:
             TenantEmailService.send_tenant_email(
                 tenant=tenant,

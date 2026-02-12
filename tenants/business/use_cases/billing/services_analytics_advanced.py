@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 from ..services_metrics import MetricsService
 
 logger = logging.getLogger(__name__)

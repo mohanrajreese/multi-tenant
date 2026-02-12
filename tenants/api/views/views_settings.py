@@ -1,9 +1,9 @@
 from rest_framework import viewsets, response, status
 from rest_framework.decorators import action
 from .api_base import DRFTenantPermission
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 from ..serializers.serializers import TenantSerializer
-from tenants.business.core.services_tenant import TenantService
+from tenants.business.use_cases.core.services_tenant import TenantService
 
 class TenantViewSet(viewsets.ModelViewSet):
     serializer_class = TenantSerializer
@@ -40,8 +40,8 @@ class TenantViewSet(viewsets.ModelViewSet):
             return response.Response({'error': 'plan_id is required'}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            from tenants.models import Plan
-            from tenants.business.operations.services_plan import PlanService
+            from tenants.domain.models import Plan
+            from tenants.business.use_cases.operations.services_plan import PlanService
             plan = Plan.objects.get(id=plan_id, is_active=True)
             message = PlanService.apply_plan_to_tenant(tenant, plan)
             return response.Response({'status': 'success', 'message': message})

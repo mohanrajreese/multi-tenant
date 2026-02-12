@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from django.db import transaction
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class RetentionService:
         Permanent cryptographic destruction of all tenant records across all silos.
         Tier 46: Requires validated GovernanceRequest (Dual Control).
         """
-        from tenants.models.models_billing import GovernanceRequest
+        from tenants.domain.models.models_billing import GovernanceRequest
         
         gov_req = GovernanceRequest.objects.get(id=governance_request_id, tenant=tenant)
         if not gov_req.can_execute():

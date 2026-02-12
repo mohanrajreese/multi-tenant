@@ -1,5 +1,5 @@
 from django.contrib.auth import login
-from tenants.models import Membership, AuditLog
+from tenants.domain.models import Membership, AuditLog
 
 class SupportService:
     """

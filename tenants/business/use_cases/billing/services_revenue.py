@@ -2,8 +2,8 @@ import logging
 from datetime import date
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-from tenants.models import Tenant
-from tenants.models.models_billing import RevenueEntry
+from tenants.domain.models import Tenant
+from tenants.domain.models.models_billing import RevenueEntry
 
 logger = logging.getLogger(__name__)
 

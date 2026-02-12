@@ -1,5 +1,5 @@
 from django.contrib import admin
-from tenants.models import Tenant, Domain, Role, Membership, TenantInvitation, AuditLog, Quota
+from tenants.domain.models import Tenant, Domain, Role, Membership, TenantInvitation, AuditLog, Quota
 from .admin_mixins import TenantAdminMixin
 
 @admin.register(Tenant)

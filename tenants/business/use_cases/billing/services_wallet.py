@@ -1,8 +1,8 @@
 import logging
 from decimal import Decimal
 from django.db import transaction
-from tenants.models import Tenant
-from tenants.models.models_billing import TenantCreditWallet
+from tenants.domain.models import Tenant
+from tenants.domain.models.models_billing import TenantCreditWallet
 
 logger = logging.getLogger(__name__)
 

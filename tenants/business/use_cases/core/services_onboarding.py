@@ -3,7 +3,7 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from django.conf import settings
-from tenants.models import Tenant, Domain, Role, Membership, Plan
+from tenants.domain.models import Tenant, Domain, Role, Membership, Plan
 from tenants.business.exceptions import OnboardingConflictError
 from tenants.business.events import dispatch, TenantRegisteredEvent
 
@@ -30,14 +30,14 @@ class OnboardingService:
     @transaction.atomic
     def onboard_tenant(cls, tenant_name: str, admin_email: str, admin_password: str, domain_name: str = None, isolation_mode: str = 'LOGICAL', **kwargs) -> tuple:
         clean_slug = slugify(tenant_name)
-        from tenants.business.core.services_domain import DomainService
+        from tenants.business.use_cases.core.services_domain import DomainService
         base_domain = DomainService.get_base_domain()
         
         final_domain = domain_name or f"{clean_slug}.{base_domain}"
         cls.validate_onboarding_data(clean_slug, final_domain, admin_email)
         
-        from tenants.business.operations.services_plan import PlanService
-        from tenants.models import Plan
+        from tenants.business.use_cases.operations.services_plan import PlanService
+        from tenants.domain.models import Plan
         default_plan = Plan.objects.filter(is_active=True).first()
         
         tenant = Tenant.objects.create(

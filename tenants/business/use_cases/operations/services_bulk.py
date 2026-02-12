@@ -1,5 +1,5 @@
 from django.db import transaction
-from tenants.business.core.services_quota import QuotaService
+from tenants.business.use_cases.core.services_quota import QuotaService
 
 class BulkImportService:
     """

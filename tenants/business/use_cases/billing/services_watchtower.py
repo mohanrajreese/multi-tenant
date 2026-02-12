@@ -1,8 +1,8 @@
 import logging
 from datetime import date, timedelta
 from django.utils import timezone
-from tenants.models import Tenant
-from tenants.models.models_billing import Entitlement
+from tenants.domain.models import Tenant
+from tenants.domain.models.models_billing import Entitlement
 from .services_notifications import BillingNotificationService
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ class LifecycleWatchtower:
         """
         Asynchronous event handler for expiry alerts.
         """
-        from tenants.models.models_billing import Entitlement
+        from tenants.domain.models.models_billing import Entitlement
         ent = Entitlement.objects.get(id=entitlement_id)
         LifecycleWatchtower.notify_expiration(ent)
 

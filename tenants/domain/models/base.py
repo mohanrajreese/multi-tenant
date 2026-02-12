@@ -7,7 +7,7 @@ class TenantQuerySet(models.QuerySet):
 
 class TenantManager(models.Manager):
     def get_queryset(self):
-        from tenants.infrastructure.utils import get_current_tenant
+        from tenants.infrastructure.utils.context import get_current_tenant
         tenant = get_current_tenant()
         
         queryset = TenantQuerySet(self.model, using=self._db)
@@ -32,7 +32,7 @@ class TenantAwareModel(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.tenant_id:
-            from tenants.infrastructure.utils import get_current_tenant
+            from tenants.infrastructure.utils.context import get_current_tenant
             current_tenant = get_current_tenant()
             if current_tenant:
                 self.tenant = current_tenant

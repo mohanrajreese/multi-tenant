@@ -4,9 +4,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from tenants.api.decorators import tenant_permission_required
 from django.utils.decorators import method_decorator
 from products.models import Product
-from tenants.business.operations.services_invitation import InvitationService
-from tenants.models import TenantInvitation, AuditLog, Domain
-from tenants.business.core.services_search import SearchService
+from tenants.business.use_cases.operations.services_invitation import InvitationService
+from tenants.domain.models import TenantInvitation, AuditLog, Domain
+from tenants.business.use_cases.core.services_search import SearchService
 
 class DashboardHomeView(LoginRequiredMixin, View):
     def get(self, request):

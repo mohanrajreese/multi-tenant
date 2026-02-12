@@ -1,5 +1,5 @@
 from django.db import transaction
-from tenants.models import Plan, Quota, Tenant
+from tenants.domain.models import Plan, Quota, Tenant
 
 class PlanService:
     """

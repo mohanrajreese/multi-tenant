@@ -1,4 +1,4 @@
-from tenants.infrastructure.utils import set_current_user, clear_context
+from tenants.infrastructure.utils.context import set_current_user, clear_context
 
 class UserContextMiddleware:
     def __init__(self, get_response):

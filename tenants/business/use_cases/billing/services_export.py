@@ -3,8 +3,8 @@ import json
 import io
 import zipfile
 from django.core.serializers.json import DjangoJSONEncoder
-from tenants.models import Tenant, Membership, Domain
-from tenants.models.models_billing import Entitlement, TenantCreditWallet
+from tenants.domain.models import Tenant, Membership, Domain
+from tenants.domain.models.models_billing import Entitlement, TenantCreditWallet
 
 logger = logging.getLogger(__name__)
 

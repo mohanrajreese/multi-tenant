@@ -1,8 +1,8 @@
 import logging
 from django.utils import timezone
 from datetime import timedelta
-from tenants.models import Tenant, Membership
-from tenants.models.models_governance import Quota
+from tenants.domain.models import Tenant, Membership
+from tenants.domain.models.models_governance import Quota
 
 logger = logging.getLogger(__name__)
 

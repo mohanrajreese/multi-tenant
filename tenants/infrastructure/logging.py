@@ -1,5 +1,5 @@
 import logging
-from tenants.infrastructure.utils import get_current_tenant
+from tenants.infrastructure.utils.context import get_current_tenant
 from django.conf import settings
 
 class TenantContextFilter(logging.Filter):

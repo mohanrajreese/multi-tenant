@@ -33,7 +33,7 @@ def async_log_audit(model_label, object_id, action, old_data=None, tenant_id=Non
     """Offloaded audit logging."""
     from django.apps import apps
     from django.contrib.auth import get_user_model
-    from .business.security.services_audit import AuditService
+    from .business.use_cases.security.services_audit import AuditService
     from .infrastructure.utils import set_current_impersonator
     
     # Restore impersonator context for the audit logic
@@ -57,7 +57,7 @@ def async_log_audit(model_label, object_id, action, old_data=None, tenant_id=Non
 @tenant_context_task
 def async_trigger_webhook(tenant_id, event_type, data):
     """Offloaded webhook dispatch."""
-    from .business.security.services_webhook import WebhookService
+    from .business.use_cases.security.services_webhook import WebhookService
     from .models import Tenant
     tenant = Tenant.objects.get(id=tenant_id)
     WebhookService.trigger_event(tenant, event_type, data)

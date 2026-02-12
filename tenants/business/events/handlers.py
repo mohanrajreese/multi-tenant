@@ -1,7 +1,7 @@
 from tenants.business.events.base import TenantRegisteredEvent
 from tenants.business.events.dispatcher import subscribe
-from tenants.business.operations.services_email import TenantEmailService
-from tenants.models import Tenant
+from tenants.business.use_cases.operations.services_email import TenantEmailService
+from tenants.domain.models import Tenant
 from tenants.infrastructure.database.schemas import SovereignSchemaManager
 
 def handle_tenant_welcome_email(event: TenantRegisteredEvent):

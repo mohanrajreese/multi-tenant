@@ -1,7 +1,7 @@
 import json
 from django.core.serializers import serialize, deserialize
 from django.apps import apps
-from tenants.models import Tenant, Membership, Domain, Quota, Role
+from tenants.domain.models import Tenant, Membership, Domain, Quota, Role
 from django.db import transaction
 
 class TenantPortabilityService:

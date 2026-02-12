@@ -1,7 +1,7 @@
 from django.core.checks import Error, register
 from django.apps import apps
 from django.conf import settings
-from tenants.models import TenantAwareModel
+from tenants.domain.models import TenantAwareModel
 
 @register('deployment')
 def check_tenant_isolation(app_configs, **kwargs):

@@ -1,5 +1,5 @@
 from .api_base import TenantAwareViewSet, DRFTenantPermission
-from tenants.models import Quota, AuditLog
+from tenants.domain.models import Quota, AuditLog
 from ..serializers.serializers import QuotaSerializer, AuditLogSerializer
 
 class QuotaViewSet(TenantAwareViewSet):

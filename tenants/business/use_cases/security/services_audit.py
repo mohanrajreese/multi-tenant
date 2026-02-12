@@ -1,6 +1,6 @@
 from django.forms.models import model_to_dict
-from tenants.models import AuditLog
-from tenants.infrastructure.utils import get_current_user, get_current_tenant, get_current_impersonator
+from tenants.domain.models import AuditLog
+from tenants.infrastructure.utils.context import get_current_user, get_current_tenant, get_current_impersonator
 
 class AuditService:
     @staticmethod

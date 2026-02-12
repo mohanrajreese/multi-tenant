@@ -1,5 +1,5 @@
 from django.conf import settings
-from .communication.factory import CommunicationFactory
+from tenants.infrastructure.adapters.communication.factory import CommunicationFactory
 
 class TenantEmailService:
     """

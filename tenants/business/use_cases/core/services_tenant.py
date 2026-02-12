@@ -3,7 +3,7 @@ import shutil
 from django.conf import settings
 from django.db import transaction
 from django.apps import apps
-from tenants.models import Tenant, TenantAwareModel
+from tenants.domain.models import Tenant, TenantAwareModel
 
 class TenantService:
     """

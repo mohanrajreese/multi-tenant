@@ -1,7 +1,7 @@
 import logging
 from datetime import date
 from django.db import transaction
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 from .services_revenue import RevenueRecognitionService
 from .services_notifications import BillingNotificationService
 

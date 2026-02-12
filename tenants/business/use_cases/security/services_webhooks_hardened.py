@@ -2,7 +2,7 @@ import hmac
 import hashlib
 import logging
 from django.core.cache import cache
-from tenants.models.models_billing import BillingEvent
+from tenants.domain.models.models_billing import BillingEvent
 
 logger = logging.getLogger(__name__)
 

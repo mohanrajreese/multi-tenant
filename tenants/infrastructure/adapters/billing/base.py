@@ -1,5 +1,5 @@
 from typing import Protocol, runtime_checkable
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 
 @runtime_checkable
 class BillingProvider(Protocol):

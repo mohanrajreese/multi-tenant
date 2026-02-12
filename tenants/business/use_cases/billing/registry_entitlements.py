@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any
-from tenants.models.models_billing import Entitlement
-from tenants.infrastructure.utils import get_current_tenant
+from tenants.domain.models.models_billing import Entitlement
+from tenants.infrastructure.utils.context import get_current_tenant
 
 logger = logging.getLogger(__name__)
 

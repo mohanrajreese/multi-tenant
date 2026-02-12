@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
-from tenants.models import Membership
-from .identity.factory import IdentityFactory
+from tenants.domain.models import Membership
+from tenants.infrastructure.adapters.identity.factory import IdentityFactory
 
 User = get_user_model()
 

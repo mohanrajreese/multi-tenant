@@ -1,5 +1,5 @@
 from storages.backends.s3boto3 import S3Boto3Storage
-from tenants.infrastructure.utils import get_current_tenant
+from tenants.infrastructure.utils.context import get_current_tenant
 
 class TenantAwareS3Storage(S3Boto3Storage):
     """

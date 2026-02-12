@@ -28,8 +28,8 @@ class ImpersonationViewSet(viewsets.ViewSet):
             request.session['impersonator_id'] = str(request.user.id)
             
             # Log the start of impersonation
-            from tenants.business.security.services_audit import AuditService
-            from tenants.models import AuditLog
+            from tenants.business.use_cases.security.services_audit import AuditService
+            from tenants.domain.models import AuditLog
             # Note: We don't use the standard signal here because it's a session change, not a model change
             
             print(f"[SECURITY] Staff {request.user.email} started impersonating {target_user.email}. Reason: {reason}")

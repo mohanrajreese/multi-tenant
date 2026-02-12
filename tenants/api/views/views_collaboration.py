@@ -1,9 +1,9 @@
 from rest_framework import response, status, permissions, views, serializers, viewsets
 from rest_framework.decorators import action
 from .api_base import TenantAwareViewSet, DRFTenantPermission
-from tenants.models import TenantInvitation, Membership
+from tenants.domain.models import TenantInvitation, Membership
 from ..serializers.serializers import TenantInvitationSerializer, MembershipSerializer
-from tenants.business.operations.services_invitation import InvitationService
+from tenants.business.use_cases.operations.services_invitation import InvitationService
 
 class TenantInvitationViewSet(TenantAwareViewSet):
     queryset = TenantInvitation.objects.all()

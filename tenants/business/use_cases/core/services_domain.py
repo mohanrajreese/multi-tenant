@@ -1,6 +1,6 @@
 import dns.resolver
 from django.conf import settings
-from tenants.models import Domain
+from tenants.domain.models import Domain
 
 class DomainService:
     @staticmethod

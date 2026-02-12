@@ -2,7 +2,7 @@ import logging
 from datetime import date, timedelta
 from django.db import transaction
 from django.utils import timezone
-from tenants.models import Tenant
+from tenants.domain.models import Tenant
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class TrialConversionService:
         Converts a trialing or expired tenant to a paid plan.
         """
         from .services_plan import PlanService # Avoid circular
-        from tenants.models import Plan
+        from tenants.domain.models import Plan
         
         plan = Plan.objects.get(slug=plan_slug)
         tenant.subscription_status = 'active'

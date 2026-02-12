@@ -1,5 +1,5 @@
 from django.contrib import admin
-from tenants.infrastructure.utils import get_current_tenant
+from tenants.infrastructure.utils.context import get_current_tenant
 
 class TenantAdminMixin:
     """

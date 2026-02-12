@@ -1,5 +1,5 @@
-from tenants.models import Domain, Membership
-from tenants.infrastructure.utils import set_current_tenant
+from tenants.domain.models import Domain, Membership
+from tenants.infrastructure.utils.context import set_current_tenant
 from tenants.infrastructure.cache import TenantCache
 from django.shortcuts import render
 from django.http import HttpResponsePermanentRedirect

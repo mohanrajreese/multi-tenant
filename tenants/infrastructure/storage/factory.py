@@ -14,7 +14,7 @@ class StorageFactory:
         Dynamic Resolver. If no tenant is provided, it attempts to 
         resolve from the current request context.
         """
-        from tenants.infrastructure.utils import get_current_tenant
+        from tenants.infrastructure.utils.context import get_current_tenant
         tenant = tenant or get_current_tenant()
         
         if not tenant:

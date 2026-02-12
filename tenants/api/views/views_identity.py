@@ -1,7 +1,7 @@
 from rest_framework import response, status, permissions, views, viewsets
 from django.contrib.auth.models import Permission
 from .api_base import TenantAwareViewSet, DRFTenantPermission
-from tenants.models import Role, Membership
+from tenants.domain.models import Role, Membership
 from ..serializers.serializers import UserSerializer, RoleSerializer, PermissionSerializer, ChangePasswordSerializer
 
 class MeView(views.APIView):

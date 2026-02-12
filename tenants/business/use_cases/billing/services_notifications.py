@@ -2,8 +2,8 @@ import logging
 from django.core import signing
 from django.urls import reverse
 from django.conf import settings
-from tenants.models import Tenant
-from tenants.business.operations.communication.factory import CommunicationFactory
+from tenants.domain.models import Tenant
+from tenants.infrastructure.adapters.communication.factory import CommunicationFactory
 
 logger = logging.getLogger(__name__)
 

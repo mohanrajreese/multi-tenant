@@ -1,5 +1,5 @@
 from django.db import models
-from tenants.models import Quota
+from tenants.domain.models import Quota
 from django.core.exceptions import ValidationError
 
 class QuotaService:

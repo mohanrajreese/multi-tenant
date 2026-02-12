@@ -1,10 +1,10 @@
 from rest_framework import response, status, views
 from rest_framework.decorators import action
 from .api_base import TenantAwareViewSet, DRFTenantPermission
-from tenants.models import Domain, Quota
+from tenants.domain.models import Domain, Quota
 from ..serializers.serializers import DomainSerializer
-from tenants.business.core.services_domain import DomainService
-from tenants.business.core.services_search import SearchService
+from tenants.business.use_cases.core.services_domain import DomainService
+from tenants.business.use_cases.core.services_search import SearchService
 
 class DomainViewSet(TenantAwareViewSet):
     queryset = Domain.objects.all()

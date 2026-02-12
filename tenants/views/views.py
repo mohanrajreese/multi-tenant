@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from tenants.business.core.services_onboarding import OnboardingService
-from tenants.business.operations.services_invitation import InvitationService
-from tenants.models import TenantInvitation
+from tenants.business.use_cases.core.services_onboarding import OnboardingService
+from tenants.business.use_cases.operations.services_invitation import InvitationService
+from tenants.domain.models import TenantInvitation
 
 class IndexView(View):
     def get(self, request):

@@ -1,6 +1,6 @@
 import logging
-from tenants.models import Tenant
-from tenants.models.models_billing import Entitlement
+from tenants.domain.models import Tenant
+from tenants.domain.models.models_billing import Entitlement
 from .factory import BillingFactory
 
 logger = logging.getLogger(__name__)
