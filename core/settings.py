@@ -183,3 +183,33 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# ==============================================================================
+# ZENITH TIER: OBSERVABILITY & LOGGING
+# ==============================================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'tenant_context': {
+            '()': 'tenants.infrastructure.logging.TenantContextFilter',
+        }
+    },
+    'formatters': {
+        'sovereign': {
+            'format': '[%(asctime)s] [%(tenant_name)s:%(tenant_id)s] [%(levelname)s] %(name)s: %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['tenant_context'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'sovereign',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}

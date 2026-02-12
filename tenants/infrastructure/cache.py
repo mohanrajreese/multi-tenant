@@ -1,36 +1,35 @@
 from django.core.cache import cache
-from .utils import get_current_tenant
+from tenants.infrastructure.utils import get_current_tenant
 
 class TenantCache:
     """
-    Zenith Tier: Performance & Isolation utility.
-    Automatically prefixes every cache key with the current tenant_id.
+    Final Frontier Improvisation: Tenant-Aware Cache Wrapper.
+    Automatically prefixes every key with the current tenant ID to 
+    prevent 'Cache Poisoning' in multi-tenant environments.
     """
-
+    
     @staticmethod
-    def _make_key(key):
+    def _get_key(key):
         tenant = get_current_tenant()
-        tenant_prefix = str(tenant.id) if tenant else "public"
-        return f"tenant:{tenant_prefix}:{key}"
-
-    @classmethod
-    def set(cls, key, value, timeout=None):
-        return cache.set(cls._make_key(key), value, timeout)
+        prefix = str(tenant.id) if tenant else "shared"
+        return f"tenant:{prefix}:{key}"
 
     @classmethod
     def get(cls, key, default=None):
-        return cache.get(cls._make_key(key), default)
+        return cache.get(cls._get_key(key), default)
+
+    @classmethod
+    def set(cls, key, value, timeout=3600):
+        cache.set(cls._get_key(key), value, timeout)
 
     @classmethod
     def delete(cls, key):
-        return cache.delete(cls._make_key(key))
+        cache.delete(cls._get_key(key))
 
     @classmethod
-    def get_or_set(cls, key, default_func, timeout=None):
-        """
-        Standard get_or_set but tenant-aware.
-        """
-        full_key = cls._make_key(key)
+    def get_or_set(cls, key, default_func, timeout=3600):
+        """Standard Django get_or_set but with tenant prefixing."""
+        full_key = cls._get_key(key)
         val = cache.get(full_key)
         if val is None:
             val = default_func()

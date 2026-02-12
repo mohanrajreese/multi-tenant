@@ -28,7 +28,7 @@ class OnboardingService:
 
     @classmethod
     @transaction.atomic
-    def onboard_tenant(cls, tenant_name: str, admin_email: str, admin_password: str, domain_name: str = None, **kwargs) -> tuple:
+    def onboard_tenant(cls, tenant_name: str, admin_email: str, admin_password: str, domain_name: str = None, isolation_mode: str = 'LOGICAL', **kwargs) -> tuple:
         clean_slug = slugify(tenant_name)
         from tenants.business.core.services_domain import DomainService
         base_domain = DomainService.get_base_domain()
@@ -44,6 +44,7 @@ class OnboardingService:
             name=tenant_name,
             slug=clean_slug,
             plan=default_plan,
+            isolation_mode=isolation_mode,
             **kwargs
         )
 

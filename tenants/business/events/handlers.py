@@ -20,12 +20,15 @@ def handle_tenant_welcome_email(event: TenantRegisteredEvent):
 def handle_tenant_schema_provisioning(event: TenantRegisteredEvent):
     """Apex Tier: Physically creates the PostgreSQL schema for the new tenant."""
     try:
-        schema_name = event.tenant_name.lower().replace(' ', '_').replace('-', '_')
-        SovereignSchemaManager.provision_schema(schema_name)
-        
-        # In a real Apex setup, we would also run migrations for the new schema here:
-        # from django.core.management import call_command
-        # call_command('migrate', schema=schema_name, interactive=False)
+        tenant = Tenant.objects.get(id=event.tenant_id)
+        if tenant.isolation_mode == 'PHYSICAL':
+            # Use slug for consistent schema naming (matches middleware)
+            schema_name = tenant.slug.replace('-', '_')
+            SovereignSchemaManager.provision_schema(schema_name)
+            
+            # In a real Apex setup, we would also run migrations for the new schema here:
+            # from django.core.management import call_command
+            # call_command('migrate', schema=schema_name, interactive=False)
     except Exception:
         pass
 

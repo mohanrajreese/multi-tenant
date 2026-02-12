@@ -47,7 +47,10 @@ class TenantSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug', 'logo', 
             'primary_color', 'secondary_color', 
             'support_email', 'website', 
-            'is_maintenance', 'config', 'created_at'
+            'is_maintenance', 'isolation_mode',
+            'ip_whitelist', 'security_config', 
+            'smtp_config', 'sso_config', 
+            'storage_config', 'config', 'created_at'
         ]
         read_only_fields = ['id', 'slug', 'created_at']
 
@@ -88,6 +91,11 @@ class OnboardingSerializer(serializers.Serializer):
     secondary_color = serializers.CharField(max_length=7, required=False)
     support_email = serializers.EmailField(required=False)
     website = serializers.URLField(required=False)
+    isolation_mode = serializers.ChoiceField(
+        choices=Tenant.ISOLATION_CHOICES, 
+        default='LOGICAL',
+        required=False
+    )
 
     def validate_tenant_name(self, value):
         from django.utils.text import slugify

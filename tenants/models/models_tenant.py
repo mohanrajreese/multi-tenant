@@ -23,10 +23,16 @@ class Tenant(models.Model):
     """
     The Organization/Client that owns data.
     """
+    ISOLATION_CHOICES = (
+        ('LOGICAL', 'Logical Isolation (Shared Table)'),
+        ('PHYSICAL', 'Physical Isolation (PostgreSQL Schema)'),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, help_text="Unique name for the tenant (e.g., acme-corp)")
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True, related_name='tenants')
+    isolation_mode = models.CharField(max_length=20, choices=ISOLATION_CHOICES, default='LOGICAL')
     
     logo = models.ImageField(
         upload_to=tenant_storage_path, 

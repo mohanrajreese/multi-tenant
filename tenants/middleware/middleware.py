@@ -26,13 +26,14 @@ class TenantResolutionMiddleware:
         request.tenant = tenant
         set_current_tenant(tenant)
 
-        # Apex Tier: Physical Schema Isolation
-        if tenant:
+        # Apex Tier: Physical Schema Isolation (Configurable)
+        if tenant and tenant.isolation_mode == 'PHYSICAL':
             from tenants.infrastructure.database.schemas import SovereignSchemaManager
             # We use the tenant slug as the schema name (sanitized)
             schema_name = tenant.slug.replace('-', '_')
             SovereignSchemaManager.set_active_schema(schema_name)
         else:
+            # Default to Logical Isolation (using 'public'/default search path)
             from tenants.infrastructure.database.schemas import SovereignSchemaManager
             SovereignSchemaManager.set_active_schema('public')
 
