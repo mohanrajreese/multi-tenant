@@ -27,10 +27,13 @@ router.register(r'audit-logs', AuditLogViewSet, basename='api_audit_log')
 router.register(r'members', MembershipViewSet, basename='api_membership')
 router.register(r'invites', TenantInvitationViewSet, basename='api_invitation')
 router.register(r'onboard', OnboardingViewSet, basename='api_onboarding')
+from .api.views.views_support import ImpersonationViewSet
+
 router.register(r'roles', RoleViewSet, basename='api_role')
 router.register(r'permissions', PermissionViewSet, basename='api_permission')
 router.register(r'domains', DomainViewSet, basename='api_domain')
 router.register(r'settings', TenantViewSet, basename='api_settings')
+router.register(r'support-impersonation', ImpersonationViewSet, basename='api_impersonation')
 
 # --- Dynamic External App Registration ---
 from .infrastructure.registry import APIRegistry

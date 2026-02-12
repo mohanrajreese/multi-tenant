@@ -51,6 +51,16 @@ class Tenant(models.Model):
     smtp_config = models.JSONField(default=dict, blank=True)
     sso_config = models.JSONField(default=dict, blank=True)
     storage_config = models.JSONField(default=dict, blank=True)
+    
+    # Omega Tier: Monetization
+    billing_customer_id = models.CharField(max_length=255, null=True, blank=True)
+    subscription_id = models.CharField(max_length=255, null=True, blank=True)
+    subscription_status = models.CharField(
+        max_length=50, 
+        default='active',
+        help_text="active, past_due, trialing, canceled"
+    )
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

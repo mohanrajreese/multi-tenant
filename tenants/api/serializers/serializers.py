@@ -127,3 +127,7 @@ class QuotaSerializer(serializers.ModelSerializer):
         model = Quota
         fields = ['id', 'resource_name', 'limit_value', 'current_usage']
         read_only_fields = ['id', 'current_usage']
+
+class ImpersonationSerializer(serializers.Serializer):
+    user_id = serializers.UUIDField(required=True)
+    reason = serializers.CharField(max_length=255, required=True)

@@ -1,6 +1,6 @@
 from django.forms.models import model_to_dict
 from tenants.models import AuditLog
-from tenants.infrastructure.utils import get_current_user, get_current_tenant
+from tenants.infrastructure.utils import get_current_user, get_current_tenant, get_current_impersonator
 
 class AuditService:
     @staticmethod
@@ -10,6 +10,7 @@ class AuditService:
         """
         user = get_current_user()
         tenant = get_current_tenant() or getattr(instance, 'tenant', None)
+        impersonator = get_current_impersonator()
         
         if not tenant:
             return # Don't log if we can't attribute it to a tenant
@@ -29,6 +30,7 @@ class AuditService:
         AuditLog.objects.create(
             tenant=tenant,
             user=user,
+            impersonator=impersonator,
             action=action,
             model_name=instance.__class__.__name__,
             object_id=str(instance.pk),

@@ -29,13 +29,30 @@ def tenant_context_task(func):
 # that can be offloaded.
 
 @tenant_context_task
-def async_log_audit(model_label, object_id, action, old_data=None, tenant_id=None):
+def async_log_audit(model_label, object_id, action, old_data=None, tenant_id=None, impersonator_id=None):
     """Offloaded audit logging."""
     from django.apps import apps
+    from django.contrib.auth import get_user_model
     from .business.security.services_audit import AuditService
+    from .infrastructure.utils import set_current_impersonator
+    
+    # Restore impersonator context for the audit logic
+    if impersonator_id:
+        User = get_user_model()
+        try:
+            impersonator = User.objects.get(id=impersonator_id)
+            set_current_impersonator(impersonator)
+        except User.DoesNotExist:
+            pass
+
     model = apps.get_model(model_label)
-    instance = model.objects.get(pk=object_id)
-    AuditService.log_action(instance, action, old_data)
+    try:
+        instance = model.objects.get(pk=object_id)
+        AuditService.log_action(instance, action, old_data)
+    except model.DoesNotExist:
+        pass
+    finally:
+        set_current_impersonator(None)
 
 @tenant_context_task
 def async_trigger_webhook(tenant_id, event_type, data):

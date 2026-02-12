@@ -34,6 +34,10 @@ def audit_post_save(sender, instance, created, **kwargs):
         import json
         old_data = json.loads(serialize('json', [instance._old_instance]))[0]
 
+    from .infrastructure.utils import get_current_impersonator
+    impersonator = get_current_impersonator()
+    impersonator_id = str(impersonator.id) if impersonator else None
+
     if IS_TESTING:
         AuditService.log_action(instance, action, instance._old_instance if not created else None)
     else:
@@ -42,7 +46,8 @@ def audit_post_save(sender, instance, created, **kwargs):
             object_id=instance.pk,
             action=action,
             old_data=old_data,
-            tenant_id=instance.tenant_id
+            tenant_id=instance.tenant_id,
+            impersonator_id=impersonator_id
         )
 
 @receiver(post_delete)
@@ -50,6 +55,10 @@ def audit_post_delete(sender, instance, **kwargs):
     if not isinstance(instance, TenantAwareModel) or isinstance(instance, AuditLog):
         return
     
+    from .infrastructure.utils import get_current_impersonator
+    impersonator = get_current_impersonator()
+    impersonator_id = str(impersonator.id) if impersonator else None
+
     if IS_TESTING:
         AuditService.log_action(instance, 'DELETE')
     else:
@@ -57,7 +66,8 @@ def audit_post_delete(sender, instance, **kwargs):
             model_label=instance._meta.label,
             object_id=instance.pk,
             action='DELETE',
-            tenant_id=instance.tenant_id
+            tenant_id=instance.tenant_id,
+            impersonator_id=impersonator_id
         )
 
 @receiver(post_delete)

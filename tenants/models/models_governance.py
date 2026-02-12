@@ -11,6 +11,14 @@ class AuditLog(TenantAwareModel):
         ('DELETE', 'Delete'),
     )
     user = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, related_name='audit_logs')
+    impersonator = models.ForeignKey(
+        'users.User', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='impersonated_logs',
+        help_text="The staff member who performed this action while acting as the user."
+    )
     action = models.CharField(max_length=10, choices=ACTION_CHOICES)
     model_name = models.CharField(max_length=100)
     object_id = models.CharField(max_length=255)

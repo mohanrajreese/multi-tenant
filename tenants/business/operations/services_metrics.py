@@ -10,14 +10,21 @@ class MetricsService:
     @staticmethod
     def record_usage(tenant, metric_name, value=1.0, unit='count'):
         """
-        Logs a single usage event.
+        Logs a single usage event and pushes to the billing provider.
         """
-        return TenantMetric.objects.create(
+        metric = TenantMetric.objects.create(
             tenant=tenant,
             metric_name=metric_name,
             value=value,
             unit=unit
         )
+        
+        # Omega Tier: Metered Billing push
+        from .billing.factory import BillingFactory
+        provider = BillingFactory.get_provider(tenant)
+        provider.update_usage(tenant, metric_name, int(value))
+        
+        return metric
 
     @staticmethod
     def get_aggregate_usage(tenant, metric_name, start_date=None):
