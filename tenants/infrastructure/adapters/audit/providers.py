@@ -63,16 +63,46 @@ class SplunkProvider(IAuditProvider):
             "action": action,
             "target": f"{target_model}:{target_id}",
             "changes": changes,
-            "meta": kwargs
+            "meta": kwargs,
+            "sourcetype": "sovereign_audit",
+            "event": "compliance_log"
         }
-        # Mock network call
-        logger.info(f"[Splunk] Shipping event to {self.host}: {json.dumps(payload)}")
-        return True
+        
+        import requests
+        try:
+            # Splunk HEC usually lives at /services/collector
+            url = f"{self.host}/services/collector"
+            headers = {"Authorization": f"Splunk {self.token}"}
+            requests.post(url, json=payload, headers=headers, timeout=2)
+            return True
+        except Exception as e:
+            logger.error(f"[Splunk] Delivery Error: {e}")
+            return False
 
 class DatadogProvider(IAuditProvider):
     """
     Tier 59: Datadog Events.
     """
     def log_event(self, tenant_id, actor_id, action, target_model, target_id, changes, **kwargs):
-        logger.info(f"[Datadog] Shipping event: {action} on {target_model}")
-        return True
+        # Datadog Events API V1
+        import requests
+        
+        api_key = self.config.get('api_key')
+        if not api_key:
+            return False
+            
+        url = f"https://api.datadoghq.com/api/v1/events?api_key={api_key}"
+        
+        payload = {
+            "title": f"Audit: {action} on {target_model}",
+            "text": f"User {actor_id} performed {action} on {target_model}:{target_id}. Changes: {json.dumps(changes)}",
+            "tags": [f"tenant:{tenant_id}", "source:sovereign_engine"],
+            "alert_type": "info"
+        }
+        
+        try:
+            requests.post(url, json=payload, timeout=2)
+            return True
+        except Exception as e:
+            logger.error(f"[Datadog] Delivery Error: {e}")
+            return False

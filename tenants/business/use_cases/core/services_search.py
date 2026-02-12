@@ -14,21 +14,17 @@ class SearchService:
         
         if not query:
             return results
+        
+        from tenants.infrastructure.adapters.search.factory import SearchFactory
+        from tenants.infrastructure.utils.context import get_current_tenant
+        
+        tenant = get_current_tenant()
+        if not tenant:
+            return results
             
-        for entry in SearchRegistry.get_entries():
-            model = entry['model']
-            fields = entry['fields']
-            serializer = entry['serializer']
-            
-            # Build dynamic search filter
-            search_query = Q()
-            for field in fields:
-                search_query |= Q(**{f"{field}__icontains": query})
-            
-            # Execute search (TenantManager handles isolation automatically)
-            queryset = model.objects.filter(search_query)[:5]
-            
-            # Store results by model name
-            results[model._meta.model_name] = [serializer(obj) for obj in queryset]
-            
+        provider = SearchFactory.get_provider(tenant)
+        # Search across all registered models
+        search_results = provider.search(tenant.id, query)
+        
+        results.update(search_results)
         return results

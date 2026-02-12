@@ -13,12 +13,38 @@ class OpenAIProvider(ILLMProvider):
         self.model = self.config.get('model', 'gpt-4-turbo')
 
     def generate_text(self, prompt, system_prompt=None, **kwargs):
-        # Mock implementation for architecture demo
-        logger.info(f"[OpenAI] Generating text with model {self.model}")
-        return f"OpenAI Response to: {prompt[:20]}..."
+        from openai import OpenAI
+        client = OpenAI(api_key=self.api_key)
+        
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+        
+        try:
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                **kwargs
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"[OpenAI] Error: {e}")
+            return f"Error generating text: {str(e)}"
 
     def get_embeddings(self, text):
-        return [0.1, 0.2, 0.3]
+        from openai import OpenAI
+        client = OpenAI(api_key=self.api_key)
+        
+        try:
+            response = client.embeddings.create(
+                model="text-embedding-3-small",
+                input=text
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            logger.error(f"[OpenAI] Embedding Error: {e}")
+            return []
 
 class AnthropicProvider(ILLMProvider):
     """
@@ -30,12 +56,27 @@ class AnthropicProvider(ILLMProvider):
         self.model = self.config.get('model', 'claude-3-opus')
 
     def generate_text(self, prompt, system_prompt=None, **kwargs):
-        # Mock
-        logger.info(f"[Anthropic] Generating text with model {self.model}")
-        return f"Claude Response to: {prompt[:20]}..."
+        import anthropic
+        client = anthropic.Anthropic(api_key=self.api_key)
+        
+        try:
+            message = client.messages.create(
+                model=self.model,
+                max_tokens=1024,
+                system=system_prompt or "",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return message.content[0].text
+        except Exception as e:
+            logger.error(f"[Anthropic] Error: {e}")
+            return f"Error generating text: {str(e)}"
 
     def get_embeddings(self, text):
-        return [0.9, 0.8, 0.7]
+        # Anthropic doesn't have a public embedding API generally comparable to OAI yet (as of 2024 knowledge),
+        # but we can return a placeholder or use a default.
+        return []
 
 class OllamaProvider(ILLMProvider):
     """

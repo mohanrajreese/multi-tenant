@@ -65,7 +65,13 @@ class InventoryConfig(AppConfig):
 ## 🛠️ Advanced Hooks
 - **Hybrid Isolation**: Set `isolation_mode` to `PHYSICAL` on any Tenant to instantly switch them to a private PostgreSQL schema.
 - **Observability**: Add the `TenantContextFilter` to your logging config to get organization-tagged logs.
-- **Provider Agnostic**: Swap Email/Storage/SSO providers via the `Tenant` config JSON fields without changing code.
+- **Provider Agnostic**: Swap Email/Storage/SSO/AI providers via the `Tenant` config JSON fields without changing code.
+  - **Database**: `{"database": {"engine": "postgresql"}}` (or `sqlite`)
+  - **Communication**: `{"communication": {"email": {"provider": "ses"}, "sms": {"provider": "twilio"}}}`
+  - **Storage**: `{"storage": {"provider": "s3", "bucket": "my-bucket"}}`
+  - **Identity**: `{"identity": {"provider": "oidc", "client_id": "..."}}`
+  - **Intelligence**: `{"intelligence": {"provider": "openai", "model": "gpt-4"}}`
+  - **Audit**: `{"audit": {"provider": "splunk", "host": "splunk.corp.com"}}`
 
 ---
 **Your new project is now a Sovereign Cloud Platform.** 🥂🚀

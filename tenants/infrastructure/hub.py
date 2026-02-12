@@ -4,6 +4,8 @@ from tenants.infrastructure.adapters.storage.factory import StorageFactory
 from tenants.infrastructure.adapters.identity.factory import IdentityFactory
 from tenants.infrastructure.adapters.intelligence.factory import LLMFactory
 from tenants.infrastructure.adapters.audit.factory import AuditFactory
+from tenants.infrastructure.adapters.search.factory import SearchFactory
+from tenants.infrastructure.adapters.performance.factory import CacheFactory, QueueFactory
 
 class InfrastructureHub:
     """
@@ -45,3 +47,18 @@ class InfrastructureHub:
     def audit(tenant):
         """Returns the tenant's Audit/Compliance Provider."""
         return AuditFactory.get_provider(tenant)
+
+    @staticmethod
+    def search(tenant):
+        """Returns the tenant's Search Provider."""
+        return SearchFactory.get_provider(tenant)
+
+    @staticmethod
+    def cache(tenant):
+        """Returns the tenant's Cache Provider."""
+        return CacheFactory.get_provider(tenant)
+
+    @staticmethod
+    def queue(tenant):
+        """Returns the tenant's Queue/Task Provider."""
+        return QueueFactory.get_provider(tenant)
