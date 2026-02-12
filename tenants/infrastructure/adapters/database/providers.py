@@ -1,5 +1,5 @@
 from django.conf import settings
-from tenants.infrastructure.protocols_database import IDatabaseProvider
+from tenants.infrastructure.protocols.database import IDatabaseProvider
 from tenants.infrastructure.database.impl import SchemaManager
 
 class PostgresSchemaProvider(IDatabaseProvider):

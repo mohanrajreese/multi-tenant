@@ -5,7 +5,7 @@ try:
 except ImportError:
     boto3 = None
 
-from tenants.infrastructure.protocols_storage import IStorageProvider
+from tenants.infrastructure.protocols.storage import IStorageProvider
 
 logger = logging.getLogger(__name__)
 

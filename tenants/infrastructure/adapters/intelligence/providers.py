@@ -1,4 +1,4 @@
-from tenants.infrastructure.protocols_intelligence import ILLMProvider
+from tenants.infrastructure.protocols.intelligence import ILLMProvider
 import logging
 
 logger = logging.getLogger(__name__)

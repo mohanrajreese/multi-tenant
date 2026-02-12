@@ -1,4 +1,4 @@
-from tenants.infrastructure.protocols_search import ISearchProvider
+from tenants.infrastructure.protocols.search import ISearchProvider
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db.models import F
 import logging

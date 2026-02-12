@@ -1,7 +1,7 @@
 import os
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from tenants.infrastructure.protocols_storage import IStorageProvider
+from tenants.infrastructure.protocols.storage import IStorageProvider
 
 class LocalProvider(IStorageProvider):
     """

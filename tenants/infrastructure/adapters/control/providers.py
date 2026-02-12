@@ -1,4 +1,4 @@
-from tenants.infrastructure.protocols_control import IFeatureFlagProvider
+from tenants.infrastructure.protocols.control import IFeatureFlagProvider
 from tenants.infrastructure.utils.context import get_current_tenant
 import logging
 

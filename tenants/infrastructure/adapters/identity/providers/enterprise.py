@@ -1,6 +1,6 @@
 import logging
 import jwt
-from tenants.infrastructure.protocols_identity import IIdentityProvider
+from tenants.infrastructure.protocols.identity import IIdentityProvider
 
 logger = logging.getLogger(__name__)
 

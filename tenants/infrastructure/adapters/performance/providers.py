@@ -1,4 +1,4 @@
-from tenants.infrastructure.protocols_performance import ICacheProvider, IQueueProvider
+from tenants.infrastructure.protocols.performance import ICacheProvider, IQueueProvider
 from django.core.cache import cache
 import logging
 

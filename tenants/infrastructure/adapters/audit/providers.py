@@ -1,4 +1,4 @@
-from tenants.infrastructure.protocols_audit import IAuditProvider
+from tenants.infrastructure.protocols.audit import IAuditProvider
 from tenants.domain.models import AuditLog
 import logging
 import json
