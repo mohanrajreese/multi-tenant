@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema
 from tenants.infrastructure.hub import InfrastructureHub
 from tenants.infrastructure.utils.context import get_current_tenant
-from .serializers_intelligence import IntelligencePromptSerializer, IntelligenceResponseSerializer
+from tenants.api.serializers.serializers_intelligence import IntelligencePromptSerializer, IntelligenceResponseSerializer
 
 class IntelligenceViewSet(viewsets.ViewSet):
     """

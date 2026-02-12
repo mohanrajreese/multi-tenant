@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: sovereign_db
+      POSTGRES_USER: sovereign_user
+      POSTGRES_PASSWORD: sovereign_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      # Database
+      DATABASE_URL: postgres://sovereign_user:sovereign_password@db:5432/sovereign_db
+      # Cache
+      REDIS_URL: redis://redis:6379/1
+      # Security
+      SECRET_KEY: dev_secret_key_change_in_prod
+      DEBUG: "True"
+
+  worker:
+    build: .
+    command: celery -A tenants worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgres://sovereign_user:sovereign_password@db:5432/sovereign_db
+      REDIS_URL: redis://redis:6379/1
+      SECRET_KEY: dev_secret_key_change_in_prod
+
+volumes:
+  pgdata:
