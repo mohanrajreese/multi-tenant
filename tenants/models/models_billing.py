@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from .base import TenantAwareModel
 
 class Entitlement(TenantAwareModel):
@@ -72,3 +73,33 @@ class RevenueEntry(TenantAwareModel):
 
     def __str__(self):
         return f"Recognized {self.amount} on {self.recognized_date} for {self.tenant.name}"
+
+class GovernanceRequest(TenantAwareModel):
+    """
+    Tier 46: Trust & Scaling Sovereignty - Dual Control.
+    Implements 'Four-Eyes' principle for destructive actions.
+    """
+    ACTION_CHOICES = (
+        ('PURGE', 'Permanent Organization Purge'),
+        ('EXPORT', 'Sensitive Data Export'),
+    )
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending Approval'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+        ('EXECUTED', 'Executed'),
+    )
+
+    action_type = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='governance_requests')
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='governance_approvals')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    executed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def can_execute(self) -> bool:
+        return self.status == 'APPROVED' and self.approved_by is not None and self.approved_by != self.requested_by
