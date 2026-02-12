@@ -3,6 +3,26 @@ from django.db import models
 from django.contrib.auth.models import Permission
 from .storage_utils import tenant_path
 
+class Plan(models.Model):
+    """
+    Subscription tiers for the platform.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    name = models.CharField(max_length=50) # e.g. "Starter", "Pro", "Enterprise"
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True)
+    
+    # Store default quotas in a JSON field: {"max_products": 100, "max_members": 5}
+    default_quotas = models.JSONField(default=dict)
+    
+    # Business logic
+    monthly_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    yearly_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name
+
 class Tenant(models.Model):
     """
     The Organization/Client that owns data.
@@ -10,6 +30,9 @@ class Tenant(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, help_text="Unique name for the tenant (e.g., acme-corp)")
+    
+    # Legendary Ecosystem Support
+    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True, related_name='tenants')
     
     # Branding
     logo = models.ImageField(upload_to=tenant_path, null=True, blank=True)
@@ -23,6 +46,17 @@ class Tenant(models.Model):
     # SaaS Platinum Engine Features
     is_maintenance = models.BooleanField(default=False, help_text="If True, all requests return 503")
     config = models.JSONField(default=dict, blank=True, help_text="Dynamic tenant-specific settings")
+
+    # Cosmic Tier: Enterprise Security
+    ip_whitelist = models.JSONField(default=list, blank=True, help_text="List of allowed IP addresses/ranges")
+    security_config = models.JSONField(default=dict, blank=True, help_text="Custom CSP and security headers")
+
+    # Sovereign Tier: Sovereignty & Portability
+    smtp_config = models.JSONField(default=dict, blank=True, help_text="Custom SMTP credentials (host, port, user, password)")
+
+    # Singularity Tier: Elite Evolution
+    sso_config = models.JSONField(default=dict, blank=True, help_text="Google SSO Configuration (client_id, client_secret, domains)")
+    storage_config = models.JSONField(default=dict, blank=True, help_text="Dedicated Storage Configuration (provider, bucket, credentials)")
 
     # Subscription/Status
     is_active = models.BooleanField(default=True)
@@ -202,3 +236,42 @@ class Quota(TenantAwareModel):
 
     def __str__(self):
         return f"{self.resource_name} limit for {self.tenant.name}"
+
+class Webhook(TenantAwareModel):
+    """
+    Outgoing webhook registration.
+    """
+    target_url = models.URLField()
+    secret = models.CharField(max_length=100, blank=True, help_text="Used to sign the payload")
+    is_active = models.BooleanField(default=True)
+    events = models.JSONField(default=list, help_text="e.g. ['product.created', 'tenant.updated']")
+
+    def __str__(self):
+        return f"Webhook for {self.tenant.name} -> {self.target_url}"
+
+class WebhookEvent(TenantAwareModel):
+    """
+    Audit log of dispatched webhooks.
+    """
+    webhook = models.ForeignKey(Webhook, on_delete=models.CASCADE, related_name='deliveries')
+    event_type = models.CharField(max_length=50)
+    payload = models.JSONField()
+    response_status = models.IntegerField(null=True, blank=True)
+    response_body = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class TenantMetric(TenantAwareModel):
+    """
+    Apex Tier: Consumption Metrics.
+    Tracks usage-based data (e.g. "API Calls", "Data Exported").
+    """
+    metric_name = models.CharField(max_length=100)
+    value = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
+    unit = models.CharField(max_length=20, default='count') # e.g. 'count', 'bytes', 'minutes'
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.event_type} to {self.webhook.target_url} ({self.response_status})"

@@ -51,3 +51,45 @@ def quota_post_delete(sender, instance, **kwargs):
     except:
         # If no quota exists for this resource, it's a no-op
         pass
+
+@receiver(post_save)
+def automated_webhook_post_save(sender, instance, created, **kwargs):
+    """
+    Mythical Tier: Automated Webhook Dispatching.
+    """
+    if not isinstance(instance, TenantAwareModel) or isinstance(instance, AuditLog):
+        return
+        
+    from .services_webhook import WebhookService
+    event_prefix = instance._meta.model_name
+    event_type = f"{event_prefix}.created" if created else f"{event_prefix}.updated"
+    
+    # Simple data normalization for the webhook payload
+    data = {
+        'id': str(instance.pk),
+        'repr': str(instance),
+        'model': instance._meta.label
+    }
+    
+    try:
+        WebhookService.trigger_event(instance.tenant, event_type, data)
+    except:
+        pass
+
+@receiver(post_delete)
+def automated_webhook_post_delete(sender, instance, **kwargs):
+    """
+    Mythical Tier: Automated Webhook Dispatching (Delete).
+    """
+    if not isinstance(instance, TenantAwareModel) or isinstance(instance, AuditLog):
+        return
+        
+    from .services_webhook import WebhookService
+    event_type = f"{instance._meta.model_name}.deleted"
+    
+    data = {'id': str(instance.pk), 'model': instance._meta.label}
+    
+    try:
+        WebhookService.trigger_event(instance.tenant, event_type, data)
+    except:
+        pass

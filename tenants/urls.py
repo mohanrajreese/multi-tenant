@@ -66,6 +66,7 @@ urlpatterns = [
     path('api/v1/auth-token/', obtain_auth_token, name='api_token'),
     path('api/v1/invites/accept/<uuid:token>/', AcceptInvitationAPIView.as_view(), name='api_accept_invitation'),
     path('api/v1/health/', HealthCheckAPIView.as_view(), name='api_health'),
+    path('api/v1/auth/tenants/', TenantSwitcherAPIView.as_view(), name='api_tenant_switcher'),
     
     # OpenAPI Schema & Docs
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

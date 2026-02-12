@@ -187,6 +187,28 @@ class TenantViewSet(viewsets.ModelViewSet):
         data = TenantService.export_tenant_data(tenant)
         return response.Response(data)
 
+    @action(detail=True, methods=['post'], url_path='change-plan')
+    def change_plan(self, request, pk=None):
+        """
+        Billing: Headlessly change the tenant's subscription plan.
+        """
+        tenant = self.get_object()
+        plan_id = request.data.get('plan_id')
+        
+        if not plan_id:
+            return response.Response({'error': 'plan_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            from .models import Plan
+            from .services_plan import PlanService
+            plan = Plan.objects.get(id=plan_id, is_active=True)
+            message = PlanService.apply_plan_to_tenant(tenant, plan)
+            return response.Response({'status': 'success', 'message': message})
+        except Plan.DoesNotExist:
+            return response.Response({'error': 'Invalid or inactive plan_id'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return response.Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class QuotaViewSet(TenantAwareViewSet):
     """
     Manage resource limits headlessly.
@@ -271,3 +293,26 @@ class HealthCheckAPIView(views.APIView):
             'storage_prefix': f"tenants/{tenant.id}/",
             'quotas': quota_data
         })
+
+class TenantSwitcherAPIView(views.APIView):
+    """
+    Zenith Tier: User Discovery API.
+    Returns all tenants the user is a member of.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        memberships = Membership.objects.filter(user=request.user, is_active=True)
+        results = []
+        for m in memberships:
+            t = m.tenant
+            primary_domain = t.domains.filter(is_primary=True, status='ACTIVE').first()
+            results.append({
+                'id': str(t.id),
+                'name': t.name,
+                'slug': t.slug,
+                'role': m.role.name if m.role else None,
+                'primary_domain': primary_domain.domain if primary_domain else None,
+                'logo': request.build_absolute_uri(t.logo.url) if t.logo else None
+            })
+        return response.Response(results)

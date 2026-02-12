@@ -42,12 +42,22 @@ class TenantService:
         final_domain = domain_name or f"{clean_slug}.{base_domain}"
         # 2. Guard: Validate business rules
         cls.validate_onboarding_data(clean_slug, final_domain, admin_email)
+        
+        # 2.5 Find logic for a default "Starter" plan
+        from .services_plan import PlanService
+        default_plan = Plan.objects.filter(is_active=True).first()
+        
         # 3. Create Entities
         tenant = Tenant.objects.create(
             name=tenant_name,
             slug=clean_slug,
+            plan=default_plan,
             **kwargs
         )
+
+        # Sync Quotas from Plan if it exists
+        if default_plan:
+            PlanService.apply_plan_to_tenant(tenant, default_plan)
         domain = Domain.objects.create(
             tenant=tenant,
             domain=final_domain,
