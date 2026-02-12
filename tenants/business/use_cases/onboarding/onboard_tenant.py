@@ -57,19 +57,26 @@ class OnboardTenantUseCase:
             config=data.metadata
         )
 
-        # 2. Setup Plan
+        # 2. Provision Tenant Store (Database Sovereignty)
+        if tenant.isolation_mode == 'PHYSICAL':
+            from tenants.infrastructure.adapters.database.factory import DatabaseFactory
+            # We use the tenant slug as the schema name (sanitized)
+            schema_name = clean_slug.replace('-', '_')
+            DatabaseFactory.get_provider().create_tenant_store(schema_name)
+
+        # 3. Setup Plan
         if default_plan:
             from tenants.business.use_cases.operations.services_plan import PlanService
             PlanService.apply_plan_to_tenant(tenant, default_plan)
 
-        # 3. Setup Domain
+        # 4. Setup Domain
         Domain.objects.create(
             tenant=tenant,
             domain=final_domain,
             is_primary=True
         )
 
-        # 4. Setup Admin Identity
+        # 5. Setup Admin Identity
         admin_user = User.objects.create_superuser(
             username=data.admin_email,
             email=data.admin_email,
@@ -93,7 +100,7 @@ class OnboardTenantUseCase:
             role=admin_role
         )
 
-        # 5. Emit Domain Event
+        # 6. Emit Domain Event
         dispatch(TenantRegisteredEvent(
             tenant_id=str(tenant.id),
             tenant_name=tenant.name,
