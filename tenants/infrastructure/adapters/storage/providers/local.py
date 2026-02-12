@@ -3,29 +3,17 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from tenants.infrastructure.protocols.storage import IStorageProvider
 
-class LocalProvider(IStorageProvider):
+class LocalProvider(FileSystemStorage, IStorageProvider):
     """
     Tier 58: Local Filesystem Provider.
     For development and on-premise deployments.
+    Compatible with Django Storage API.
     """
-    def __init__(self, config=None):
+    def __init__(self, config=None, *args, **kwargs):
         self.config = config or {}
-        # Allow overriding base location per tenant if needed
         location = self.config.get('location') or settings.MEDIA_ROOT
         base_url = self.config.get('base_url') or settings.MEDIA_URL
-        self._storage = FileSystemStorage(location=location, base_url=base_url)
-
-    def save(self, path, content, **kwargs):
-        return self._storage.save(path, content)
-
-    def delete(self, path):
-        if self._storage.exists(path):
-            self._storage.delete(path)
-            return True
-        return False
-
-    def exists(self, path):
-        return self._storage.exists(path)
-
-    def url(self, path):
-        return self._storage.url(path)
+        super().__init__(location=location, base_url=base_url, *args, **kwargs)
+        
+    def save(self, name, content, max_length=None):
+        return super().save(name, content, max_length=max_length)

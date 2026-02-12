@@ -1,83 +1,40 @@
+from storages.backends.s3boto3 import S3Boto3Storage
 import logging
-try:
-    import boto3
-    from botocore.exceptions import ClientError
-except ImportError:
-    boto3 = None
-
+from tenants.infrastructure.utils.context import get_current_tenant
 from tenants.infrastructure.protocols.storage import IStorageProvider
 
 logger = logging.getLogger(__name__)
 
-class S3Provider(IStorageProvider):
+class S3Provider(S3Boto3Storage, IStorageProvider):
     """
     Tier 58: AWS S3 Provider.
     For scalable cloud storage.
+    Compatible with Django Storage API.
     """
-    def __init__(self, config=None):
+    def __init__(self, config=None, **kwargs):
         self.config = config or {}
-        self.bucket_name = self.config.get('bucket_name')
-        self.region_name = self.config.get('region_name', 'us-east-1')
-        self.aws_access_key_id = self.config.get('aws_access_key_id')
-        self.aws_secret_access_key = self.config.get('aws_secret_access_key')
-        self.custom_domain = self.config.get('custom_domain') # e.g. cdn.example.com
+        # Map our config keys to S3Boto3Storage keys if needed, 
+        # or rely on them being passed in kwargs or settings.
+        # S3Boto3Storage uses settings.AWS_... by default.
+        super().__init__(**kwargs)
 
-    def _get_client(self):
-        if not boto3:
-            raise ImportError("boto3 is not installed.")
-        return boto3.client(
-            's3',
-            region_name=self.region_name,
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key
-        )
+    @property
+    def bucket_name(self):
+        tenant = get_current_tenant()
+        if tenant and tenant.storage_config:
+            return tenant.storage_config.get('bucket_name', super().bucket_name)
+        return self.config.get('bucket_name', super().bucket_name)
 
-    def save(self, path, content, **kwargs):
-        client = self._get_client()
-        # Ensure content is at start if it's a file pointer
-        if hasattr(content, 'seek'):
-            content.seek(0)
-            
-        try:
-            client.upload_fileobj(
-                content, 
-                self.bucket_name, 
-                path, 
-                ExtraArgs=kwargs.get('extra_args', {'ACL': 'private'})
-            )
-            return path
-        except ClientError as e:
-            logger.error(f"S3 Upload failed: {e}")
-            raise e
+    @property
+    def access_key(self):
+        tenant = get_current_tenant()
+        if tenant and tenant.storage_config:
+            return tenant.storage_config.get('access_key', super().access_key)
+        return self.config.get('access_key', super().access_key)
 
-    def delete(self, path):
-        client = self._get_client()
-        try:
-            client.delete_object(Bucket=self.bucket_name, Key=path)
-            return True
-        except ClientError as e:
-            logger.error(f"S3 Delete failed: {e}")
-            return False
-
-    def exists(self, path):
-        client = self._get_client()
-        try:
-            client.head_object(Bucket=self.bucket_name, Key=path)
-            return True
-        except ClientError:
-            return False
-
-    def url(self, path):
-        if self.custom_domain:
-            return f"https://{self.custom_domain}/{path}"
-        
-        # Generator presigned URL if implicit access isn't public
-        client = self._get_client()
-        try:
-            return client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': self.bucket_name, 'Key': path},
-                ExpiresIn=3600
-            )
-        except ClientError:
-            return ""
+    @property
+    def secret_key(self):
+        tenant = get_current_tenant()
+        if tenant and tenant.storage_config:
+            return tenant.storage_config.get('secret_key', super().secret_key)
+        return self.config.get('secret_key', super().secret_key)
