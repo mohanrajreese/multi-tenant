@@ -65,6 +65,7 @@ class Tenant(models.Model):
     tax_id = models.CharField(max_length=100, null=True, blank=True, help_text="VAT/GST/EIN")
     billing_address = models.TextField(null=True, blank=True)
     country_code = models.CharField(max_length=2, default="US", help_text="ISO 2-letter country code")
+    preferred_currency = models.CharField(max_length=3, default="USD", help_text="ISO 3-letter currency code (e.g., USD, EUR, GBP)")
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

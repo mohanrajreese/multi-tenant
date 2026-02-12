@@ -12,15 +12,15 @@ class StripeProvider:
         # Mocking a provider ID:
         return f"cus_{tenant.slug[:10]}"
 
-    def update_usage(self, tenant: Tenant, metric_name: str, quantity: int):
+    def update_usage(self, tenant: Tenant, metric_name: str, quantity: int, currency: str = "USD"):
         """
-        Reports metered usage to Stripe.
+        Reports metered usage to Stripe with currency.
         """
         customer_id = tenant.billing_customer_id
         if not customer_id:
             return
             
-        print(f"[STRIPE] Reporting {quantity} usage for {metric_name}")
+        print(f"[STRIPE] Reporting {quantity} usage for {metric_name} in {currency}")
 
     def update_quantity(self, tenant: Tenant, quantity: int):
         """

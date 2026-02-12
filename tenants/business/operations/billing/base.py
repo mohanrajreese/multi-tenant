@@ -9,11 +9,11 @@ class BillingProvider(Protocol):
     """
     
     def create_customer(self, tenant: Tenant) -> str:
-        """Creates a customer in the provider and returns the provider_customer_id."""
+        """Creates a customer in the billing provider's system."""
         ...
 
-    def update_usage(self, tenant: Tenant, metric_name: str, quantity: int):
-        """Pushes metered usage data to the provider for usage-based billing."""
+    def update_usage(self, tenant: Tenant, metric_name: str, quantity: int, currency: str = "USD"):
+        """Pushes metered usage data with currency awareness."""
         ...
 
     def update_quantity(self, tenant: Tenant, quantity: int):

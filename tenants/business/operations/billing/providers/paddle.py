@@ -11,15 +11,16 @@ class PaddleProvider:
         # Paddle-specific customer creation logic
         return f"pad_{tenant.slug[:10]}"
 
-    def update_usage(self, tenant: Tenant, metric_name: str, quantity: int):
+    def update_usage(self, tenant: Tenant, metric_name: str, quantity: int, currency: str = "USD"):
         """
-        Reports usage to Paddle.
+        Reports usage to Paddle with currency.
         """
         customer_id = tenant.billing_customer_id
         if not customer_id:
             return
             
-        print(f"[PADDLE] Reporting {quantity} usage for {metric_name}")
+        print(f"[PADDLE] Reporting {quantity} usage for {metric_name} in {currency}")
+        # Paddle-specific usage reporting would happen here
 
     def update_quantity(self, tenant: Tenant, quantity: int):
         """
