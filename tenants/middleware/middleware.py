@@ -26,6 +26,16 @@ class TenantResolutionMiddleware:
         request.tenant = tenant
         set_current_tenant(tenant)
 
+        # Apex Tier: Physical Schema Isolation
+        if tenant:
+            from tenants.infrastructure.database.schemas import SovereignSchemaManager
+            # We use the tenant slug as the schema name (sanitized)
+            schema_name = tenant.slug.replace('-', '_')
+            SovereignSchemaManager.set_active_schema(schema_name)
+        else:
+            from tenants.infrastructure.database.schemas import SovereignSchemaManager
+            SovereignSchemaManager.set_active_schema('public')
+
         try:
             response = self.get_response(request)
         finally:

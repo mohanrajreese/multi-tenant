@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from django.conf import settings
 from tenants.models import Tenant, Domain, Role, Membership, Plan
+from tenants.business.exceptions import OnboardingConflictError
+from tenants.business.events import dispatch, TenantRegisteredEvent
 
 User = get_user_model()
 
@@ -16,13 +18,13 @@ class OnboardingService:
     @staticmethod
     def validate_onboarding_data(tenant_slug: str, domain_name: str, email: str):
         if Tenant.objects.filter(slug=tenant_slug).exists():
-            raise ValueError(f"Company URL '{tenant_slug}' is already taken.")
+            raise OnboardingConflictError(f"Company URL '{tenant_slug}' is already taken.")
         
         if Domain.objects.filter(domain=domain_name).exists():
-            raise ValueError(f"Domain '{domain_name}' is already registered.")
+            raise OnboardingConflictError(f"Domain '{domain_name}' is already registered.")
             
         if User.objects.filter(email=email).exists():
-            raise ValueError(f"An account with email '{email}' already exists.")
+            raise OnboardingConflictError(f"An account with email '{email}' already exists.")
 
     @classmethod
     @transaction.atomic
@@ -75,15 +77,12 @@ class OnboardingService:
             role=admin_role
         )
 
-        from tenants.business.operations.services_email import TenantEmailService
-        try:
-            TenantEmailService.send_tenant_email(
-                tenant=tenant,
-                subject=f"Welcome to {tenant.name}!",
-                message=f"Hello,\n\nYour organization {tenant.name} has been successfully created. You can access it at {final_domain}.",
-                recipient_list=[admin_email]
-            )
-        except Exception:
-            pass
+        # Emit Domain Event for downstream side-effects (Email, Analytics, etc.)
+        dispatch(TenantRegisteredEvent(
+            tenant_id=str(tenant.id),
+            tenant_name=tenant.name,
+            admin_email=admin_email,
+            domain_name=final_domain
+        ))
 
         return tenant, admin_user

@@ -96,6 +96,8 @@ DATABASES = {
     }
 }
 
+DATABASE_ROUTERS = ['tenants.infrastructure.database.routing.TenantRouter']
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -171,6 +173,7 @@ REST_FRAMEWORK = {
         'tenant': '1000/day',
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'tenants.api.exceptions_handler.sovereign_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20
 }
