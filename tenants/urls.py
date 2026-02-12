@@ -3,12 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from .views.views import IndexView, OnboardView, AcceptInvitationView
-from .views.views_dashboard import (
-    DashboardHomeView, InviteUserView, ResendInviteView, 
-    RevokeInviteView, AuditLogView, DomainManagementView, 
-    GlobalSearchView
-)
+
 from .api.views import (
     AuditLogViewSet, OnboardingViewSet, TenantInvitationViewSet,
     RoleViewSet, DomainViewSet, TenantViewSet,
@@ -44,18 +39,6 @@ for prefix, viewset, basename in APIRegistry.get_viewsets():
     router.register(prefix, viewset, basename=basename)
 
 urlpatterns = [
-    # --- Dashboard Routes ---
-    path('', IndexView.as_view(), name='index'),
-    path('onboard/', OnboardView.as_view(), name='onboard'),
-    path('dashboard/', DashboardHomeView.as_view(), name='dashboard'),
-    path('dashboard/invites/', InviteUserView.as_view(), name='dashboard_invites'),
-    path('invite/accept/<uuid:token>/', AcceptInvitationView.as_view(), name='accept_invitation'),
-    path('dashboard/invites/<uuid:pk>/resend/', ResendInviteView.as_view(), name='resend_invitation'),
-    path('dashboard/invites/<uuid:pk>/revoke/', RevokeInviteView.as_view(), name='revoke_invitation'),
-    path('dashboard/audit-logs/', AuditLogView.as_view(), name='audit_logs'),
-    path('dashboard/domains/', DomainManagementView.as_view(), name='manage_domains'),
-    path('dashboard/search/', GlobalSearchView.as_view(), name='global_search'),
-
     # --- API v1 Routes ---
     path('api/v1/', include(router.urls)),
     path('api/v1/search/', GlobalSearchAPIView.as_view(), name='api_search'),
