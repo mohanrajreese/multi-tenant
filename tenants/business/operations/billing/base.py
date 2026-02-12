@@ -16,6 +16,18 @@ class BillingProvider(Protocol):
         """Pushes metered usage data to the provider for usage-based billing."""
         ...
 
+    def update_quantity(self, tenant: Tenant, quantity: int):
+        """Updates the subscription quantity (Seat-Based Billing)."""
+        ...
+
+    def calculate_taxes(self, tenant: Tenant, amount: float) -> float:
+        """Calculates taxes for an amount based on tenant billing data."""
+        ...
+
+    def apply_coupon(self, tenant: Tenant, coupon_code: str) -> bool:
+        """Applies a promotion code/coupon to a tenant's subscription."""
+        ...
+
     def get_portal_url(self, tenant: Tenant, return_url: str) -> str:
         """Generates a secure link to the provider's billing portal."""
         ...

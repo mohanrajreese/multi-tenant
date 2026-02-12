@@ -61,6 +61,11 @@ class Tenant(models.Model):
         help_text="active, past_due, trialing, canceled"
     )
 
+    # Sigma Tier: Tax & Billing Sovereignty
+    tax_id = models.CharField(max_length=100, null=True, blank=True, help_text="VAT/GST/EIN")
+    billing_address = models.TextField(null=True, blank=True)
+    country_code = models.CharField(max_length=2, default="US", help_text="ISO 2-letter country code")
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -125,3 +125,17 @@ def automated_webhook_post_delete(sender, instance, **kwargs):
             event_type=event_type,
             data=data
         )
+
+# Sigma Tier: Seat-Based Billing Sync
+from .models.models_identity import Membership
+
+@receiver(post_save, sender=Membership)
+@receiver(post_delete, sender=Membership)
+def sync_seats_on_membership_change(sender, instance, **kwargs):
+    """
+    Automatically syncs the subscription quantity when a membership is created or deleted.
+    """
+    from .business.operations.billing.services_seats import SeatService
+    # In production, this should be offloaded to a background task
+    # to avoid blocking on external API calls.
+    SeatService.handle_membership_change(instance.tenant)
