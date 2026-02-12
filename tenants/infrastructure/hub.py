@@ -6,6 +6,7 @@ from tenants.infrastructure.adapters.intelligence.factory import LLMFactory
 from tenants.infrastructure.adapters.audit.factory import AuditFactory
 from tenants.infrastructure.adapters.search.factory import SearchFactory
 from tenants.infrastructure.adapters.performance.factory import CacheFactory, QueueFactory
+from tenants.infrastructure.adapters.control.factory import ControlFactory
 
 class InfrastructureHub:
     """
@@ -62,3 +63,8 @@ class InfrastructureHub:
     def queue(tenant):
         """Returns the tenant's Queue/Task Provider."""
         return QueueFactory.get_provider(tenant)
+
+    @staticmethod
+    def control(tenant):
+        """Returns the tenant's Feature Flag/Control Provider."""
+        return ControlFactory.get_provider(tenant)

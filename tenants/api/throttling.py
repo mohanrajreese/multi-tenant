@@ -7,10 +7,20 @@ class TenantRateThrottle(SimpleRateThrottle):
     """
     scope = 'tenant'
 
+    rate = '1000/hour'
+
     def get_cache_key(self, request, view):
-        tenant = getattr(request, 'tenant', None)
+        from tenants.infrastructure.utils.context import get_current_tenant
+        tenant = get_current_tenant()
+        
         if not tenant:
-            return None  # Fallback to default or skip
+            return None 
+
+        # Dynamic Rate Limit from Tenant Config
+        config_rate = tenant.config.get('control', {}).get('rate_limit')
+        if config_rate:
+            self.rate = config_rate
+            self.num_requests, self.duration = self.parse_rate(self.rate)
 
         return self.cache_format % {
             'scope': self.scope,
