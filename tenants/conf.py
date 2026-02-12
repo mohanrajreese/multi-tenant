@@ -1,23 +1,29 @@
 from django.conf import settings
+from typing import Any
 
-class AppSettings:
+class SovereignConfig:
     """
-    Centralized configuration for the tenants app.
-    Provides sensible defaults and easy access to project settings.
+    SoC: Internal Configuration Hub.
+    Centralizes all engine defaults and overrides with SOVEREIGN_ prefixing.
     """
-    
-    @property
-    def BASE_SAAS_DOMAIN(self):
-        return getattr(settings, 'TENANT_BASE_DOMAIN', 'localhost')
+    PREFIX = 'TENANT_' # Keeping TENANT_ prefix for backward compatibility with existing settings
 
-    @property
-    def MANAGED_APPS(self):
-        # Apps to include in Permission Discovery and Search by default
-        return getattr(settings, 'TENANT_MANAGED_APPS', ['tenants'])
+    DEFAULTS = {
+        'BASE_SAAS_DOMAIN': 'localhost',
+        'MANAGED_APPS': ['tenants'],
+        'STORAGE_PATH_PREFIX': 'tenants',
+        'DEFAULT_ISOLATION': 'LOGICAL',
+        'MIGRATION_PARALLELISM': 4,
+        'QUOTA_STRICT_MODE': True,
+        'BILLING_PROVIDER_DEFAULT': 'stripe',
+        'AUDIT_LOG_RETENTION_DAYS': 90,
+    }
 
-    @property
-    def STORAGE_PATH_PREFIX(self):
-        # Prefix for all tenant-scoped file uploads
-        return getattr(settings, 'TENANT_STORAGE_PREFIX', 'tenants')
+    def __getattr__(self, name: str) -> Any:
+        if name not in self.DEFAULTS:
+            raise AttributeError(f"Setting '{name}' is not part of the Sovereign Engine.")
+        
+        return getattr(settings, f"{self.PREFIX}{name}", self.DEFAULTS[name])
 
-conf = AppSettings()
+# Canonical instance for internal use
+conf = SovereignConfig()
