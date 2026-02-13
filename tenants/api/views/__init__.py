@@ -4,6 +4,7 @@ from .views_identity import MeView, ChangePasswordView, RoleViewSet, PermissionV
 from .views_governance import QuotaViewSet, AuditLogViewSet
 from .views_settings import TenantViewSet
 from .views_infrastructure import DomainViewSet, GlobalSearchAPIView, HealthCheckAPIView
+from .views_communication import CommunicationViewSet
 
 __all__ = [
     'OnboardingViewSet',
@@ -11,5 +12,6 @@ __all__ = [
     'MeView', 'ChangePasswordView', 'RoleViewSet', 'PermissionViewSet', 'TenantSwitcherAPIView',
     'QuotaViewSet', 'AuditLogViewSet',
     'TenantViewSet',
-    'DomainViewSet', 'GlobalSearchAPIView', 'HealthCheckAPIView'
+    'DomainViewSet', 'GlobalSearchAPIView', 'HealthCheckAPIView',
+    'CommunicationViewSet'
 ]

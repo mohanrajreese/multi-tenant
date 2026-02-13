@@ -10,7 +10,7 @@ from .api.views import (
     AcceptInvitationAPIView, MembershipViewSet, 
     GlobalSearchAPIView, MeView, ChangePasswordView,
     PermissionViewSet, QuotaViewSet, HealthCheckAPIView,
-    TenantSwitcherAPIView
+    TenantSwitcherAPIView, CommunicationViewSet
 )
 
 # API v1 Router
@@ -29,6 +29,7 @@ router.register(r'permissions', PermissionViewSet, basename='api_permission')
 router.register(r'domains', DomainViewSet, basename='api_domain')
 router.register(r'settings', TenantViewSet, basename='api_settings')
 router.register(r'support-impersonation', ImpersonationViewSet, basename='api_impersonation')
+router.register(r'communication', CommunicationViewSet, basename='api_communication')
 
 from .api.views.views_intelligence import IntelligenceViewSet
 router.register(r'intelligence', IntelligenceViewSet, basename='api_intelligence')
