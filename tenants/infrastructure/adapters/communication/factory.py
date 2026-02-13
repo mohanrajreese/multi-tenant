@@ -2,6 +2,7 @@ from .providers.smtp import SMTPProvider
 from .providers.sendgrid import SendGridProvider
 from .providers.ses import SESProvider
 from .providers.twilio import TwilioProvider
+from .providers.whatsapp import TwilioWhatsAppProvider
 
 class CommunicationFactory:
     """
@@ -38,3 +39,16 @@ class CommunicationFactory:
             return TwilioProvider(config)
         
         return TwilioProvider(config)
+
+    @staticmethod
+    def get_whatsapp_provider(tenant):
+        """
+        Returns the configured WhatsApp provider for the tenant.
+        """
+        config = tenant.config.get('communication', {}).get('whatsapp', {})
+        provider_type = config.get('provider', 'twilio') # Default to Twilio
+        
+        if provider_type == 'twilio':
+            return TwilioWhatsAppProvider(config)
+        
+        return TwilioWhatsAppProvider(config)

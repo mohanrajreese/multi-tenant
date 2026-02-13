@@ -19,3 +19,13 @@ class ISMSProvider(Protocol):
     def send_sms(self, recipient: str, message: str, **kwargs: Any) -> bool:
         """Send an SMS to a single recipient."""
         ...
+
+@runtime_checkable
+class IWhatsAppProvider(Protocol):
+    """
+    Tier 77: WhatsApp Sovereignty Protocol.
+    Abstracts WhatsApp messaging (Twilio, Meta Graph API).
+    """
+    def send_whatsapp(self, recipient: str, message: str, media_url: Optional[str] = None, **kwargs: Any) -> bool:
+        """Send a WhatsApp message."""
+        ...

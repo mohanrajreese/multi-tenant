@@ -92,3 +92,10 @@ class InfrastructureHub:
         """Returns the tenant's Feature Flag/Control Provider."""
         with tracer.start_as_current_span("hub.control", attributes={"tenant.slug": tenant.slug}):
             return ControlFactory.get_provider(tenant)
+
+    @staticmethod
+    @circuit_breaker(threshold=5, reset_timeout=60)
+    def whatsapp(tenant):
+        """Returns the tenant's WhatsApp Provider."""
+        with tracer.start_as_current_span("hub.whatsapp", attributes={"tenant.slug": tenant.slug}):
+            return CommunicationFactory.get_whatsapp_provider(tenant)
