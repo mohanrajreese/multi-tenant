@@ -3,6 +3,7 @@ from .providers.sendgrid import SendGridProvider
 from .providers.ses import SESProvider
 from .providers.twilio import TwilioProvider
 from .providers.whatsapp import TwilioWhatsAppProvider
+from tenants.infrastructure.security.vault import SovereignVault
 
 class CommunicationFactory:
     """
@@ -15,6 +16,9 @@ class CommunicationFactory:
         Returns the configured Email provider for the tenant.
         """
         config = tenant.config.get('communication', {}).get('email', {})
+        # Tier 91: Unprotect sensitive credentials
+        config = SovereignVault.unprotect_config(config, ['api_key', 'password', 'secret_key'])
+        
         provider_type = config.get('provider', 'smtp') # Default to SMTP
         
         if provider_type == 'smtp':
@@ -33,6 +37,9 @@ class CommunicationFactory:
         Returns the configured SMS provider for the tenant.
         """
         config = tenant.config.get('communication', {}).get('sms', {})
+        # Tier 91: Unprotect sensitive credentials
+        config = SovereignVault.unprotect_config(config, ['api_key', 'auth_token', 'account_sid'])
+        
         provider_type = config.get('provider', 'twilio') # Default to Twilio
         
         if provider_type == 'twilio':
@@ -46,6 +53,9 @@ class CommunicationFactory:
         Returns the configured WhatsApp provider for the tenant.
         """
         config = tenant.config.get('communication', {}).get('whatsapp', {})
+        # Tier 91: Unprotect sensitive credentials
+        config = SovereignVault.unprotect_config(config, ['api_key', 'auth_token', 'account_sid'])
+        
         provider_type = config.get('provider', 'twilio') # Default to Twilio
         
         if provider_type == 'twilio':

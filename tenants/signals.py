@@ -5,9 +5,10 @@ from .business.use_cases.security.services_audit import AuditService
 from .tasks import async_log_audit, async_trigger_webhook
 import sys
 
-# We skip offloading in tests to ensure assertions work correctly
+# We skip offloading in tests or if explicitly disabled
 from django.conf import settings
-IS_TESTING = getattr(settings, 'TESTING', False) or 'test' in sys.argv or 'pytest' in sys.modules
+def is_testing():
+    return getattr(settings, 'TESTING', False) or 'test' in sys.argv or 'pytest' in sys.modules
 
 @receiver(pre_save)
 def audit_pre_save(sender, instance, **kwargs):
@@ -39,7 +40,7 @@ def audit_post_save(sender, instance, created, **kwargs):
     impersonator = get_current_impersonator()
     impersonator_id = str(impersonator.id) if impersonator else None
 
-    if IS_TESTING:
+    if is_testing():
         AuditService.log_action(instance, action, instance._old_instance if not created else None)
     else:
         async_log_audit.delay(
@@ -60,7 +61,7 @@ def audit_post_delete(sender, instance, **kwargs):
     impersonator = get_current_impersonator()
     impersonator_id = str(impersonator.id) if impersonator else None
 
-    if IS_TESTING:
+    if is_testing():
         AuditService.log_action(instance, 'DELETE')
     else:
         async_log_audit.delay(
@@ -99,7 +100,7 @@ def automated_webhook_post_save(sender, instance, created, **kwargs):
         'model': instance._meta.label
     }
     
-    if IS_TESTING:
+    if is_testing():
         from tenants.business.use_cases.security.services_webhook import WebhookService
         WebhookService.trigger_event(instance.tenant, event_type, data)
     else:
@@ -117,7 +118,7 @@ def automated_webhook_post_delete(sender, instance, **kwargs):
     event_type = f"{instance._meta.model_name}.deleted"
     data = {'id': str(instance.pk), 'model': instance._meta.label}
     
-    if IS_TESTING:
+    if is_testing():
         from tenants.business.use_cases.security.services_webhook import WebhookService
         WebhookService.trigger_event(instance.tenant, event_type, data)
     else:

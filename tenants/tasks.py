@@ -61,3 +61,60 @@ def async_trigger_webhook(tenant_id, event_type, data):
     from .models import Tenant
     tenant = Tenant.objects.get(id=tenant_id)
     WebhookService.trigger_event(tenant, event_type, data)
+
+
+@tenant_context_task
+def flush_ledger_buffer(tenant_id=None):
+    """
+    Tier 92: Ledger Persistence.
+    Flushes buffered transactions from Redis to the SQL Ledger.
+    Synchronizes the SQL account balance with the Redis truth.
+    """
+    import json
+    from .business.use_cases.core.services_ledger import RedisLedgerAggregator
+    from .domain.models.models_ledger import LedgerAccount, LedgerEntry
+    from .models import Tenant
+    
+    tenant = Tenant.objects.get(id=tenant_id)
+    client = RedisLedgerAggregator._get_client()
+    if not client:
+        return
+        
+    buffer_key = f"ledger:{tenant_id}:buffer"
+    balance_key = f"ledger:{tenant_id}:any:balance" # In a real system, we iterate over account types
+    
+    # 1. Pop all buffered transactions
+    transactions = []
+    while True:
+        data = client.rpop(buffer_key)
+        if not data:
+            break
+        transactions.append(json.loads(data))
+    
+    if not transactions:
+        return
+
+    # 2. Persist to SQL in bulk
+    with transaction.atomic():
+        for tx in transactions:
+            account, _ = LedgerAccount.objects.get_or_create(
+                tenant=tenant,
+                account_type=tx['account_type']
+            )
+            LedgerEntry.objects.create(
+                account=account,
+                entry_type=tx['entry_type'],
+                amount=tx['amount'],
+                description=f"Redis Flush: {tx.get('timestamp')}"
+            )
+            
+            # Sync balance
+            if tx['entry_type'] == 'CREDIT':
+                account.balance += tx['amount']
+            else:
+                account.balance -= tx['amount']
+            account.save()
+            
+    return len(transactions)
+
+from django.db import transaction

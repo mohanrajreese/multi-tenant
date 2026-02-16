@@ -63,6 +63,7 @@ class SovereignConfig:
         'QUEUE_ISOLATION_STRATEGY': 'NAMESPACE',
         'SEARCH_PROVIDER_DEFAULT': 'mock',
         'ELASTICSEARCH_URL': 'http://localhost:9200',
+        'SANDBOX_MODE': False,
     }
 
     def __getattr__(self, name: str) -> Any:

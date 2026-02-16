@@ -7,6 +7,7 @@ from .models_billing import Entitlement, BillingEvent
 from .models_integration import Webhook, WebhookEvent
 from .models_metrics import TenantMetric
 from .models_ledger import LedgerAccount, LedgerEntry
+from .models_telemetry import TelemetryEntry
 
 __all__ = [
     'TenantAwareModel', 'TenantManager', 'TenantQuerySet',

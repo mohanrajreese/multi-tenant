@@ -60,8 +60,9 @@ class OnboardTenantUseCase:
         # 2. Provision Tenant Store (Database Sovereignty)
         if tenant.isolation_mode == 'PHYSICAL':
             from tenants.infrastructure.adapters.database.factory import DatabaseFactory
-            # We use the tenant slug as the schema name (sanitized)
-            schema_name = clean_slug.replace('-', '_')
+            from tenants.infrastructure.utils.security import SchemaSanitizer
+            # Tier 80: Use SchemaSanitizer for absolute identifier security
+            schema_name = SchemaSanitizer.sanitize(tenant.slug)
             DatabaseFactory.get_provider().create_tenant_store(schema_name)
 
         # 3. Setup Plan

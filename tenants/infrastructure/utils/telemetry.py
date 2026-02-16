@@ -49,3 +49,25 @@ def setup_telemetry():
 
 def get_tracer():
     return trace.get_tracer("sovereign.engine")
+
+class InfrastructureTelemetryBridge:
+    """
+    Tier 94: Tenant-Visible Telemetry.
+    Bridges infrastructure outcomes to the TelemetryEntry model.
+    """
+    
+    @staticmethod
+    def record(tenant, provider, action, status, latency_ms=None, error_message=None, metadata=None):
+        from tenants.domain.models.models_telemetry import TelemetryEntry
+        try:
+            TelemetryEntry.objects.create(
+                tenant=tenant,
+                provider=provider,
+                action=action,
+                status=status,
+                latency_ms=latency_ms,
+                error_message=str(error_message) if error_message else None,
+                metadata=metadata or {}
+            )
+        except Exception as e:
+            logger.error(f"[TELEMETRY-BRIDGE] Failed to record infrastructure event: {e}")
