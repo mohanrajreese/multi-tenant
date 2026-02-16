@@ -103,3 +103,35 @@ class GovernanceRequest(TenantAwareModel):
 
     def can_execute(self) -> bool:
         return self.status == 'APPROVED' and self.approved_by is not None and self.approved_by != self.requested_by
+
+class Invoice(TenantAwareModel):
+    """
+    Tier 99: Sovereign Billing.
+    Represents a financial request for payment from the tenant.
+    """
+    STATUS_CHOICES = (
+        ('DRAFT', 'Draft'),
+        ('OPEN', 'Open'),
+        ('PAID', 'Paid'),
+        ('VOID', 'Void'),
+        ('UNCOLLECTIBLE', 'Uncollectible'),
+    )
+
+    invoice_number = models.CharField(max_length=50, unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
+    due_date = models.DateField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    pdf_url = models.URLField(null=True, blank=True)
+    stripe_charge_id = models.CharField(max_length=255, null=True, blank=True)
+    line_items = models.JSONField(default=list) # List of {description, amount}
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Invoice {self.invoice_number} ({self.status})"

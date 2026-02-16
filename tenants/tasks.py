@@ -118,3 +118,26 @@ def flush_ledger_buffer(tenant_id=None):
     return len(transactions)
 
 from django.db import transaction
+
+@tenant_context_task
+def cleanup_expired_data(tenant_id=None):
+    """
+    Tier 99: Compliance Sovereignty.
+    Automated data retention policy enforcement (GDPR/HIPAA).
+    """
+    from django.utils import timezone
+    from datetime import timedelta
+    from tenants.infrastructure.conf import conf
+    from tenants.domain.models import AuditLog, TelemetryEntry
+    
+    retention_days = conf.AUDIT_LOG_RETENTION_DAYS or 90
+    cutoff_date = timezone.now() - timedelta(days=retention_days)
+    
+    # 1. Clean Audit Logs
+    audit_count, _ = AuditLog.objects.filter(created_at__lt=cutoff_date).delete()
+    
+    # 2. Clean Telemetry
+    # Telemetry might have a shorter retention, but defaulting to same for now
+    telemetry_count, _ = TelemetryEntry.objects.filter(timestamp__lt=cutoff_date).delete()
+    
+    return f"Cleaned {audit_count} audit logs and {telemetry_count} telemetry entries."

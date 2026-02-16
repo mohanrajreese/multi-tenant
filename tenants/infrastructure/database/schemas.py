@@ -9,4 +9,8 @@ class SovereignSchemaManager:
 
     @staticmethod
     def provision_schema(schema_name):
-        DatabaseFactory.get_provider().create_tenant_store(schema_name)
+        return DatabaseFactory.get_provider().create_tenant_store(schema_name)
+
+    @staticmethod
+    def deprovision_schema(schema_name):
+        return DatabaseFactory.get_provider().delete_tenant_store(schema_name)

@@ -56,6 +56,7 @@ MIDDLEWARE = [
     "tenants.infrastructure.middleware.middleware.TenantResolutionMiddleware",
     "tenants.infrastructure.middleware.middleware.TenantSecurityMiddleware",
     "tenants.infrastructure.middleware.middleware.TenantPerformanceMiddleware",
+    "tenants.infrastructure.middleware.branding.BrandingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

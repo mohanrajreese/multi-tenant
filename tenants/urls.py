@@ -12,9 +12,11 @@ from .api.views import (
     PermissionViewSet, QuotaViewSet, HealthCheckAPIView,
     TenantSwitcherAPIView, CommunicationViewSet
 )
+from .api.views.views_telemetry import TelemetryViewSet
 
 # API v1 Router
 router = DefaultRouter()
+router.register(r'telemetry', TelemetryViewSet, basename='api_telemetry')
 router.register(r'quotas', QuotaViewSet, basename='api_quota')
 # Note: External apps (like products) can still register to this router 
 # by importing it or we can provide a hook. For now, we'll keep it self-contained.

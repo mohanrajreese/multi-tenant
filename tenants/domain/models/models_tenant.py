@@ -66,6 +66,18 @@ class Tenant(models.Model):
     billing_address = models.TextField(null=True, blank=True)
     country_code = models.CharField(max_length=2, default="US", help_text="ISO 2-letter country code")
     preferred_currency = models.CharField(max_length=3, default="USD", help_text="ISO 3-letter currency code (e.g., USD, EUR, GBP)")
+    timezone = models.CharField(max_length=100, default="UTC", help_text="Olson timezone name")
+    locale = models.CharField(max_length=10, default="en-US", help_text="BCP 47 language tag")
+
+    # Tier 98: Organizational Hierarchy
+    parent = models.ForeignKey(
+        'self', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='children',
+        help_text="Parent organization for hierarchical multi-tenancy"
+    )
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -73,6 +85,18 @@ class Tenant(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_ancestors(self, include_self=True):
+        """
+        Tier 98: Hierarchy Traversal.
+        Returns a list of all parent organizations in ascending order.
+        """
+        ancestors = [self] if include_self else []
+        curr = self.parent
+        while curr:
+            ancestors.append(curr)
+            curr = curr.parent
+        return ancestors
 
 class Domain(models.Model):
     """

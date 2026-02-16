@@ -10,39 +10,48 @@ class QuotaService:
     @staticmethod
     def check_quota(tenant, resource_name, increment=1):
         """
-        Verifies if a tenant has enough quota to perform an action.
-        Raises ValidationError if limit reached.
+        Verifies if a tenant (and its ancestors) has enough quota.
+        Tier 98: Hierarchy Enforcement.
         """
-        quota = Quota.objects.filter(tenant=tenant, resource_name=resource_name).first()
+        # Check self and all parents
+        ancestors = tenant.get_ancestors(include_self=True)
         
-        # If no quota record exists, we assume UNLIMITED (Standard SaaS default)
-        if not quota:
-            return True
-            
-        # 0 means blocked/restricted unless specified
-        if quota.limit_value > 0:
-            if quota.current_usage + increment > quota.limit_value:
-                raise ValidationError(
-                    f"Quota exceeded for '{resource_name}'. "
-                    f"Limit: {quota.limit_value}, Current: {quota.current_usage}"
-                )
-        
+        for org in ancestors:
+            quota = Quota.objects.filter(tenant=org, resource_name=resource_name).first()
+            if not quota:
+                continue
+
+            # 0 means blocked/restricted unless specified
+            if quota.limit_value > 0:
+                if quota.current_usage + increment > quota.limit_value:
+                    entity = "Organization" if org == tenant else f"Parent Organization ({org.name})"
+                    raise ValidationError(
+                        f"Quota exceeded for '{resource_name}' at {entity} level. "
+                        f"Limit: {quota.limit_value}, Current: {quota.current_usage}"
+                    )
         return True
 
     @staticmethod
     def increment_usage(tenant, resource_name, amount=1):
         """
-        Increments the usage count for a resource.
+        Increments usage for the tenant and all its ancestors.
         """
-        Quota.objects.filter(tenant=tenant, resource_name=resource_name).update(
+        ancestors = tenant.get_ancestors(include_self=True)
+        tenant_ids = [t.id for t in ancestors]
+        
+        Quota.objects.filter(tenant_id__in=tenant_ids, resource_name=resource_name).update(
             current_usage=models.F('current_usage') + amount
         )
 
     @staticmethod
     def decrement_usage(tenant, resource_name, amount=1):
         """
-        Decrements the usage count for a resource.
+        Decrements usage for the tenant and all its ancestors.
         """
-        Quota.objects.filter(tenant=tenant, resource_name=resource_name).update(
+        ancestors = tenant.get_ancestors(include_self=True)
+        tenant_ids = [t.id for t in ancestors]
+
+        # Prevent negative usage? Usually fine to just subtract.
+        Quota.objects.filter(tenant_id__in=tenant_ids, resource_name=resource_name).update(
             current_usage=models.F('current_usage') - amount
         )
