@@ -2,7 +2,8 @@ from tenants.domain.models import Domain, Membership
 from tenants.infrastructure.utils.context import set_current_tenant
 from tenants.infrastructure.cache import TenantCache
 from django.shortcuts import render
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponsePermanentRedirect, JsonResponse
+from tenants.infrastructure.utils.security import SchemaSanitizer
 
 class TenantResolutionMiddleware:
     """Layer 1: Identity & Context Resolution."""
@@ -29,8 +30,8 @@ class TenantResolutionMiddleware:
         # Apex Tier: Physical Schema Isolation (Configurable)
         if tenant and tenant.isolation_mode == 'PHYSICAL':
             from tenants.infrastructure.database.schemas import SovereignSchemaManager
-            # We use the tenant slug as the schema name (sanitized)
-            schema_name = tenant.slug.replace('-', '_')
+            # Tier 80: Use SchemaSanitizer for absolute identifier security
+            schema_name = SchemaSanitizer.sanitize(tenant.slug)
             SovereignSchemaManager.set_active_schema(schema_name)
         else:
             # Default to Logical Isolation (using 'public'/default search path)
@@ -49,6 +50,24 @@ class TenantSecurityMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
+    def _error_response(self, request, tenant, status, title, heading, message):
+        """Tier 80: Headless Error Response Negotiator."""
+        accept = request.META.get('HTTP_ACCEPT', '')
+        
+        if 'application/json' in accept or request.path.startswith('/api/'):
+            return JsonResponse({
+                "error": {
+                    "code": title.upper().replace(' ', '_'),
+                    "message": message,
+                    "heading": heading
+                }
+            }, status=status)
+            
+        return render(request, 'tenants/errors/base.html', {
+            'tenant': tenant, 'title': title, 'heading': heading,
+            'message': message
+        }, status=status)
+
     def __call__(self, request):
         tenant = getattr(request, 'tenant', None)
         if not tenant:
@@ -58,33 +77,21 @@ class TenantSecurityMiddleware:
         if tenant.ip_whitelist:
             client_ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
             if client_ip not in tenant.ip_whitelist:
-                return render(request, 'tenants/errors/base.html', {
-                    'tenant': tenant, 'title': 'Forbidden', 'heading': 'Restricted Access',
-                    'message': 'Your IP address is not authorized.'
-                }, status=403)
+                return self._error_response(request, tenant, 403, 'Forbidden', 'Restricted Access', 'Your IP address is not authorized.')
 
         # 2. Status Enforcement
         if not tenant.is_active:
-            return render(request, 'tenants/errors/base.html', {
-                'tenant': tenant, 'title': 'Inactive', 'heading': 'Organization Inactive',
-                'message': 'Contact support to reactivate.'
-            }, status=403)
+            return self._error_response(request, tenant, 403, 'Inactive', 'Organization Inactive', 'Contact support to reactivate.')
 
         # 3. Membership Guard
         if request.user.is_authenticated and not request.user.is_staff:
             if not request.path.startswith('/admin/') and not request.path.startswith('/onboard/'):
                 if not Membership.objects.filter(user=request.user, tenant=tenant, is_active=True).exists():
-                    return render(request, 'tenants/errors/base.html', {
-                        'tenant': tenant, 'title': 'Denied', 'heading': 'Access Denied',
-                        'message': f'You are not a member of {tenant.name}.'
-                    }, status=403)
+                    return self._error_response(request, tenant, 403, 'Denied', 'Access Denied', f'You are not a member of {tenant.name}.')
 
         # 4. Maintenance
         if tenant.is_maintenance and not request.path.startswith('/admin/') and not request.GET.get('bypass_maintenance'):
-            return render(request, 'tenants/errors/base.html', {
-                'tenant': tenant, 'title': 'Maintenance', 'heading': 'Under Maintenance',
-                'message': "We'll be back shortly!"
-            }, status=503)
+            return self._error_response(request, tenant, 503, 'Maintenance', 'Under Maintenance', "We'll be back shortly!")
 
         return self.get_response(request)
 

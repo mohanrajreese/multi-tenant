@@ -17,6 +17,9 @@ class SovereignConfig:
         'QUOTA_STRICT_MODE': True,
         'BILLING_PROVIDER_DEFAULT': 'stripe',
         'AUDIT_LOG_RETENTION_DAYS': 90,
+        'CIRCUIT_BREAKER_THRESHOLD': 5,
+        'CIRCUIT_BREAKER_RESET_TIMEOUT': 60,
+        'TRACING_ENABLED': True,
     }
 
     def __getattr__(self, name: str) -> Any:

@@ -9,6 +9,7 @@ from tenants.infrastructure.adapters.performance.factory import CacheFactory, Qu
 from tenants.infrastructure.adapters.control.factory import ControlFactory
 from tenants.infrastructure.utils.resilience import circuit_breaker
 from tenants.infrastructure.utils.telemetry import get_tracer
+from tenants.infrastructure.conf import conf
 
 tracer = get_tracer()
 
@@ -31,70 +32,70 @@ class InfrastructureHub:
             return CommunicationFactory.get_email_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def sms(tenant):
         """Returns the tenant's SMS Provider."""
         with tracer.start_as_current_span("hub.sms", attributes={"tenant.slug": tenant.slug}):
             return CommunicationFactory.get_sms_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def storage(tenant):
         """Returns the tenant's Storage Provider."""
         with tracer.start_as_current_span("hub.storage", attributes={"tenant.slug": tenant.slug}):
             return StorageFactory.get_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def identity(tenant, provider_type='google'):
         """Returns the tenant's Identity Provider."""
         with tracer.start_as_current_span("hub.identity", attributes={"tenant.slug": tenant.slug, "provider": provider_type}):
             return IdentityFactory.get_provider(tenant, provider_type)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def intelligence(tenant):
         """Returns the tenant's Intelligence (AI) Provider."""
         with tracer.start_as_current_span("hub.intelligence", attributes={"tenant.slug": tenant.slug}):
             return LLMFactory.get_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def audit(tenant):
         """Returns the tenant's Audit/Compliance Provider."""
         with tracer.start_as_current_span("hub.audit", attributes={"tenant.slug": tenant.slug}):
             return AuditFactory.get_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def search(tenant):
         """Returns the tenant's Search Provider."""
         with tracer.start_as_current_span("hub.search", attributes={"tenant.slug": tenant.slug}):
             return SearchFactory.get_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def cache(tenant):
         """Returns the tenant's Cache Provider."""
         with tracer.start_as_current_span("hub.cache", attributes={"tenant.slug": tenant.slug}):
             return CacheFactory.get_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def queue(tenant):
         """Returns the tenant's Queue/Task Provider."""
         with tracer.start_as_current_span("hub.queue", attributes={"tenant.slug": tenant.slug}):
             return QueueFactory.get_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def control(tenant):
         """Returns the tenant's Feature Flag/Control Provider."""
         with tracer.start_as_current_span("hub.control", attributes={"tenant.slug": tenant.slug}):
             return ControlFactory.get_provider(tenant)
 
     @staticmethod
-    @circuit_breaker(threshold=5, reset_timeout=60)
+    @circuit_breaker(threshold=conf.CIRCUIT_BREAKER_THRESHOLD, reset_timeout=conf.CIRCUIT_BREAKER_RESET_TIMEOUT)
     def whatsapp(tenant):
         """Returns the tenant's WhatsApp Provider."""
         with tracer.start_as_current_span("hub.whatsapp", attributes={"tenant.slug": tenant.slug}):
