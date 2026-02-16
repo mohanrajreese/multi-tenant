@@ -46,22 +46,59 @@ class PostgresFullTextProvider(ISearchProvider):
 class ElasticsearchProvider(ISearchProvider):
     """
     Tier 61: Enterprise Search (Elasticsearch/OpenSearch).
+    Provides physical isolation via tenant-prefixed indices.
     """
     def __init__(self, config=None):
         self.config = config or {}
         self.host = self.config.get('host', 'http://localhost:9200')
         self.index_prefix = self.config.get('index_prefix', 'tenant')
 
+    def _get_client(self):
+        try:
+            from elasticsearch import Elasticsearch
+            return Elasticsearch([self.host])
+        except ImportError:
+            logger.error("[Elasticsearch] Library not installed. Using Log Mock.")
+            return None
+
     def index_document(self, tenant_id, model_name, object_id, content, **kwargs):
-        # Mocking the HTTP call to ES
         index = f"{self.index_prefix}_{tenant_id}_{model_name.lower()}"
-        logger.info(f"[Elasticsearch] Indexing {object_id} into {index}")
-        return True
+        client = self._get_client()
+        
+        if not client:
+            logger.info(f"[Elasticsearch MOCK] Indexing {object_id} into {index}")
+            return True
+
+        try:
+            client.index(index=index, id=object_id, document=content)
+            logger.info(f"[Elasticsearch] Indexed {object_id} into {index}")
+            return True
+        except Exception as e:
+            logger.error(f"[Elasticsearch] Index Error: {e}")
+            return False
 
     def search(self, tenant_id, query, models=None, **kwargs):
-        # Mocking the Search result
-        logger.info(f"[Elasticsearch] Searching for '{query}' in tenant {tenant_id}")
-        return {
-            "summary": "Results from Elasticsearch", 
-            "hits": []
-        }
+        client = self._get_client()
+        index = f"{self.index_prefix}_{tenant_id}_*" # Search across tenant indices
+        
+        if not client:
+            logger.info(f"[Elasticsearch MOCK] Searching for '{query}' in {index}")
+            return {"hits": [], "total": 0}
+
+        try:
+            body = {
+                "query": {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["*"]
+                    }
+                }
+            }
+            res = client.search(index=index, body=body)
+            return {
+                "hits": [hit['_source'] for hit in res['hits']['hits']],
+                "total": res['hits']['total']['value']
+            }
+        except Exception as e:
+            logger.error(f"[Elasticsearch] Search Error: {e}")
+            return {"hits": [], "total": 0}
