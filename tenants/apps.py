@@ -9,8 +9,12 @@ class TenantsConfig(AppConfig):
         from .infrastructure import checks # Ensure checks are registered
         from .infrastructure.registry import SearchRegistry
         from .infrastructure.utils.telemetry import setup_telemetry
+        from .infrastructure.conf import conf
         from .models import Membership, AuditLog
         
+        # 🛡️ Tier 80: Fail-Fast Startup Config Check
+        conf.validate_startup()
+
         # 🛡️ Initialize Distributed Tracing
         setup_telemetry()
 
